@@ -1,0 +1,13 @@
+h3
+{
+    color:blue;
+}
+html{
+    text-align: center;
+    background-color: black;
+    color:black;
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    background-size:cover;
+    min-height: 100vh;
+}
+
