@@ -1,13 +1,20 @@
+
+  background-color:black;
+
+
 h3
 {
     color:blue;
 }
 html{
-    text-align: center;
-    background-color: black;
-    color:black;
-    margin: 0; padding: 0; height: 100%; width: 100%;
-    background-size:cover;
+    background-color:black;
     min-height: 100vh;
+    min-width: 100vh;
+    margin: 0;
 }
+
+.element{
+    background-color:black;
+}
+
 
