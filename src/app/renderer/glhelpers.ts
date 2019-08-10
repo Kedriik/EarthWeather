@@ -209,6 +209,7 @@ export class GLHelpers {
       shaderProgramInfo.uniformLocations.projectionMatrix,
       false,
       ProjectionMatrix);
+      
     gl.uniformMatrix4fv(
       shaderProgramInfo.uniformLocations.modelMatrix,
       false,

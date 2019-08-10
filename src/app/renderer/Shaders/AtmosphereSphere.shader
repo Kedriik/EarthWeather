@@ -8,5 +8,4 @@
   in vec4 WorldSpaceNormal;
   void main(void){
       AtmosphereLayer       = vec4(WorldSpacePosition.xyz,1.0);
-
   }

@@ -369,7 +369,7 @@ void main(){
     float fDistToAtmosphereFragment=distance(uCameraPosition,v4AtmosphereLayer.xyz);
     vec3 dir=v4AtmosphereLayer.xyz-uCameraPosition;
     float t0,t1;
-
+    
     if(position.w != 0.0 )
     {
       FinalColor.xyz=computeIncidentLight(position.xyz,planetIndex,0.0).xyz;

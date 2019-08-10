@@ -1,4 +1,4 @@
-import { mat4 } from 'gl-matrix';
+ import { mat4 } from 'gl-matrix';
 import { vec4 } from 'gl-matrix';
 import { vec3 } from 'gl-matrix';
 import { quat } from 'gl-matrix';
@@ -584,13 +584,13 @@ export class Planet implements IRenderObject {
   }
   drawDefferedAtmosphere(gl, buffers, ViewMatrix, ProjectionMatrix, DefferedShaderProgramInfo, LightPosition,
     LightColor, LightPower, camera, PositionTexture) {
-    if (!this.hasAtmosphere)
-      return;
+      
     let AtmosphereModelMatrix: mat4;
     AtmosphereModelMatrix = mat4.create();
     let r = this.Size + 1.0;
     mat4.scale(AtmosphereModelMatrix, this.ModelMatrix, [r, r, r]);
     GLHelpers.genericDraw(gl, Planet.AtmosphereSphereBuffers, Planet.AtmosphereSphereProgramInfo, AtmosphereModelMatrix, ViewMatrix, ProjectionMatrix);
+    //
     gl.cullFace(gl.BACK);
     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

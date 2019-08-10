@@ -3,16 +3,17 @@ import { webgl } from 'webgl';
 import { mat4 } from 'gl-matrix';
 import { vec3 } from 'gl-matrix';
 import { vec2 } from 'gl-matrix';
-import {Camera} from './Camera'
+import { Camera } from './Camera'
 import { InputTracker } from './InputTracker'
 import { Planet } from './Planet'
 import { Star } from './Star'
 import { GLHelpers } from './glhelpers'
+
 let canvas: any;
 declare var require: any
 @Component({
   selector: 'app-renderer',
-  providers:[
+  providers: [
   ],
   templateUrl: './renderer.component.html',
   styleUrls: ['./renderer.component.css']
@@ -34,8 +35,8 @@ export class RendererComponent implements OnInit {
     }`
   ];
   constructor() {
-    
-   }
+
+  }
   ;
   gl: webgl;
   CommonBuffers: any;
@@ -55,6 +56,20 @@ export class RendererComponent implements OnInit {
   NormalTexture: any;
   PositionTexture: any;
   ColorPropertiesTexture: any;
+  ///Particles///
+  ParticlesFramebuffer: any;
+  ParticlesBuffer: any;
+  ParticlesPositionsFront: any;    //z = particles life
+  ParticlesPositionsBack: any;    //z = particles life
+  ParticlesVelocities: any;   //
+  ParticlesVelocitiesImage: any;
+  ParticleDrawProgram: any;
+  ParticleDrawProgramInfo: any;
+  ParticleComputeProgram: any;
+  ParticleComputeProgramInfo: any;
+  particlesSize: number = 512;
+  ParticleFrontBack: boolean = false;
+  ///////////////
   DepthTexture: any;
   renderBuffer: any;
   screenSize: vec2;
@@ -71,15 +86,14 @@ export class RendererComponent implements OnInit {
   PlanetSizeScale: number = 1;
   PlanetDistScale: number = 0.1;
   SunSizeScale: number = 0.01;
-  testCoords:any;
-  Earth:Planet;
-  ngOnInit() {    
+  testCoords: any;
+  Earth: Planet;
+  ngOnInit() {
     this.start();
-    
     requestAnimationFrame(this.render.bind(this));
   }
   onResize(event) {
-    
+
     canvas.width = (document.body.clientWidth);
     this.gl = this.initWebGL(canvas);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
@@ -97,7 +111,6 @@ export class RendererComponent implements OnInit {
       zNear,
       zFar);
   }
-  // ********** WEBGL ********* //
   start() {
     canvas = document.getElementById("glcanvas");
     canvas.tabIndex = 0;
@@ -132,6 +145,8 @@ export class RendererComponent implements OnInit {
     }
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
+    this.initParticlesFramebuffer();
+
 
 
     this.DefferedShaderProgram = GLHelpers.initShaderProgram(
@@ -191,9 +206,9 @@ export class RendererComponent implements OnInit {
     Planet.camera = this.camera;
     this.Earth.initMouseControl(this.inputTracker);
     this.inputTracker.init(canvas);
-    this.LightPosition  = this.Sun.Position;
-    this.LightColor     = this.Sun.Color;
-    this.LightPower     = this.Sun.Power;
+    this.LightPosition = this.Sun.Position;
+    this.LightColor = this.Sun.Color;
+    this.LightPower = this.Sun.Power;
     this.CommonBuffers.loopTotalTime = 0;
   }
 
@@ -214,12 +229,202 @@ export class RendererComponent implements OnInit {
 
     return this.gl;
   }
+  initParticlesFramebuffer() {
+    this.ParticlesFramebuffer = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebuffer);
+    this.ParticlesFramebuffer.width = this.particlesSize;
+    this.ParticlesFramebuffer.height = this.particlesSize;
+
+    this.ParticlesPositionsFront = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsFront);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesFramebuffer.width,
+      this.ParticlesFramebuffer.height, 0, this.gl.RGBA, this.gl.FLOAT, null
+    );
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
+    this.ParticlesPositionsBack = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsBack);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesFramebuffer.width,
+      this.ParticlesFramebuffer.height, 0, this.gl.RGBA, this.gl.FLOAT, null
+    );
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
+    
+    this.gl.framebufferTexture2D(
+      this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
+      this.gl.TEXTURE_2D, this.ParticlesPositionsBack, 0
+    );
+    // this.gl.framebufferRenderbuffer(
+    //   this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT,
+    //   this.gl.RENDERBUFFER, this.renderBuffer
+    // );
+
+    this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0]);
+    var status = this.gl.checkFramebufferStatus(this.gl.FRAMEBUFFER);
+    console.log(status);
+    this.ParticlesBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ParticlesBuffer);
+
+    let indexes = []
+    for (let i = 0; i < this.particlesSize; i++) {
+      for (let j = 0; j < this.particlesSize; j++) {
+        //initialPositions.push(Math.random() * 360, Math.random() * 180, 0);
+        indexes.push(i, j);
+      }
+    }
+    this.gl.bufferData(this.gl.ARRAY_BUFFER,
+      new Float32Array(indexes),
+      this.gl.DYNAMIC_DRAW);
+
+    this.ParticleComputeProgram = GLHelpers.initShaderProgram(
+      this.gl, require("raw-loader!./Shaders/ParticlesComputeVertex.shader"), require("raw-loader!./Shaders/ParticlesComputeFragment.shader"));
+    this.ParticleComputeProgramInfo = {
+      program: this.ParticleComputeProgram,
+      attribLocations: {
+        particlesIndexes: this.gl.getAttribLocation(this.ParticleComputeProgram, 'aParticleIndex')
+      },
+      uniformLocations: {
+        time: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uTime'),
+        deltaTime: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uDeltaTime'),
+        particleLife: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticleLife'),
+        particlePositions: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticlePositions'),
+        windVectors: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uWindVectors')
+      },
+    };
+
+    this.ParticleDrawProgram = GLHelpers.initShaderProgram(
+      this.gl, require("raw-loader!./Shaders/ParticlesVertex.shader"), require("raw-loader!./Shaders/ParticlesFragment.shader"));
+    this.ParticleDrawProgramInfo = {
+      program: this.ParticleDrawProgram,
+      attribLocations: {
+        particlesIndexes: this.gl.getAttribLocation(this.ParticleDrawProgram, 'aParticleIndex'),
+      },
+      uniformLocations: {
+        particlesPositions: this.gl.getUniformLocation(this.ParticleDrawProgram, 'uParticlesPositions'),
+        viewMatrix: this.gl.getUniformLocation(this.ParticleDrawProgram, 'uViewMatrix'),
+        projectionMatrix: this.gl.getUniformLocation(this.ParticleDrawProgram, 'uProjectionMatrix')
+      },
+    };
+
+    this.ParticlesVelocitiesImage = new Image();
+    this.ParticlesVelocitiesImage.src = require('./Textures/dirswindsigma995.jpg');
+    this.ParticlesVelocitiesImage.onload = () => {
+      this.ParticlesVelocities = this.gl.createTexture();
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesVelocities);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.ParticlesVelocitiesImage.width,
+        this.ParticlesVelocitiesImage.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.ParticlesVelocitiesImage)
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+      this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    }
+
+    
+
+  }
+  updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
+    //update
+    
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
+    
+   this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebuffer);
+    //this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+    this.gl.viewport(0, 0, this.particlesSize, this.particlesSize);
+    if (this.ParticleFrontBack) {
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsBack);
+      this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
+
+      this.gl.framebufferTexture2D(
+        this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
+        this.gl.TEXTURE_2D, this.ParticlesPositionsFront, 0
+      );
+    }
+    
+    else {
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsFront);
+      this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
+
+      this.gl.framebufferTexture2D(
+        this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
+        this.gl.TEXTURE_2D, this.ParticlesPositionsBack, 0
+      );
+    }
+    
+    this.ParticleFrontBack = !this.ParticleFrontBack; //swap buffers
+    this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0]);
+    const numComponents = 2;  // pull out 2 values per iteration
+    const type = this.gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+    // 0 = use type and numComponents above
+    const offset = 0;         // how many bytes inside the buffer to start from
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ParticlesBuffer);
+
+    this.gl.vertexAttribPointer(
+      this.ParticleComputeProgramInfo.attribLocations.particlesIndexes,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    this.gl.enableVertexAttribArray(
+      this.ParticleComputeProgramInfo.attribLocations.particlesIndexes);
+    this.gl.useProgram(this.ParticleComputeProgramInfo.program);
+
+    this.gl.uniform1f(
+      this.ParticleComputeProgramInfo.uniformLocations.time,
+      time
+    )
+
+    this.gl.uniform1f(
+      this.ParticleComputeProgramInfo.uniformLocations.deltaTime,
+      deltaTime
+    )
+
+    this.gl.activeTexture(this.gl.TEXTURE1);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesVelocities);
+    this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.windVectors, 1);
+      
+    //this.gl.drawArrays(this.gl.POINTS, 0, this.particlesSize * this.particlesSize)
+    //////draw
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    this.gl.vertexAttribPointer(
+      this.ParticleDrawProgramInfo.attribLocations.particlesIndexes,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    this.gl.enableVertexAttribArray(
+      this.ParticleDrawProgramInfo.attribLocations.particlesIndexes);
+    this.gl.useProgram(this.ParticleDrawProgramInfo.program);
+    this.gl.uniform1i(this.ParticleDrawProgramInfo.uniformLocations.particlesPositions, 0);
+    this.gl.uniformMatrix4fv(
+      this.ParticleDrawProgramInfo.uniformLocations.viewMatrix,
+      false,
+      ViewMatrix);
+    this.gl.uniformMatrix4fv(
+      this.ParticleDrawProgramInfo.uniformLocations.projectionMatrix,
+      false,
+      ProjectionMatrix);
+
+   // this.gl.drawArrays(this.gl.POINTS, 0, this.particlesSize * this.particlesSize)
+
+  }
+
   initTextureFramebuffer() {
     this.gl.getExtension('EXT_color_buffer_float');
     this.rttFrameBuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFrameBuffer);
     this.rttFrameBuffer.width = canvas.width;
     this.rttFrameBuffer.height = canvas.height;
+
     this.rttTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
     this.gl.texImage2D(
@@ -421,21 +626,13 @@ export class RendererComponent implements OnInit {
     gl.depthFunc(gl.LESS);            // Near things obscure far things
     gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
-    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);  // Clear to black, fully opaque
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-    // Clear the canvas before we start drawing on it.
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    if(vec3.dist(this.camera.Position, this.Earth.Position)<10){
+    //camera handling
+    if (vec3.dist(this.camera.Position, this.Earth.Position) < 10) {
       let tvec = vec3.create();
-      vec3.sub(tvec,this.camera.Position, this.Earth.Position)
-      vec3.normalize(tvec,tvec);
+      vec3.sub(tvec, this.camera.Position, this.Earth.Position)
+      vec3.normalize(tvec, tvec);
       let d = 10 - vec3.dist(this.camera.Position, this.Earth.Position);
-      vec3.mul(tvec,tvec,[d,d,d]);
+      vec3.mul(tvec, tvec, [d, d, d]);
       this.camera.Position[0] += tvec[0]
       this.camera.Position[1] += tvec[1]
       this.camera.Position[2] += tvec[2]
@@ -447,28 +644,29 @@ export class RendererComponent implements OnInit {
       let i = this.PlanetAndDists[index][0];
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
       gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.enable(gl.DEPTH_TEST);           // Enable depth testing
       gl.depthFunc(gl.LEQUAL);
       this.planets[i].animate(deltaTime, buffers);
-      //let moon_dist = 384.4;
 
       this.planets[i].draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
       this.drawDeffered(gl, buffers);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
-      gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-      gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-      gl.depthFunc(gl.LESS);            // Near things obscure far things
-      gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-      if (this.planets[i].hasOceans) {
-        this.planets[i].drawOcean(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
-      }
-      this.drawDeffered(gl, buffers);
-
-
+      //gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+      // gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+      // gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+      // gl.depthFunc(gl.LESS);            // Near things obscure far things
+      // gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+      // if (this.planets[i].hasOceans) {
+      //   this.planets[i].drawOcean(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
+      //   this.drawDeffered(gl, buffers);
+      // }
+      
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.clear(gl.COLOR_BUFFER_BIT)
-      gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+      //gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer)
+      gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);;
       gl.enable(gl.CULL_FACE);
       gl.cullFace(gl.BACK);
       gl.disable(gl.DEPTH_TEST);
@@ -476,18 +674,7 @@ export class RendererComponent implements OnInit {
         this.planets[i].drawDefferedAtmosphere(gl, buffers, this.ViewMatrix, this.ProjectionMatrix, this.DefferedShaderProgramInfo
           , this.LightPosition, this.LightColor, this.LightPower, this.camera, this.PositionTexture);
       }
-      if (this.planets[i].PlanetName == "Mars") {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.CloudsLayerFrameBuffer);
-        gl.clear(gl.COLOR_BUFFER_BIT)
-        gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK);
-        gl.disable(gl.DEPTH_TEST);
-        this.planets[i].drawDefferedClouds(gl, buffers, this.ViewMatrix, this.ProjectionMatrix, this.DefferedShaderProgramInfo
-          , this.LightPosition, this.LightColor, this.LightPower, this.camera, this.PositionTexture);
 
-
-      }
       gl.cullFace(gl.BACK);
 
       if (this.planets[i].PlanetName == "Earth") {
@@ -500,9 +687,11 @@ export class RendererComponent implements OnInit {
         this.planets[i].drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
         this.drawDeffered(gl, buffers);
       }
+      //particle final draw
+     // this.updateAndDrawParticles(this.ProjectionMatrix,this.ViewMatrix,this.CommonBuffers.loopTotalTime,deltaTime)
 
     }
-    
+
     this.CommonBuffers.loopTotalTime += deltaTime;
   }
   drawDeffered(gl, buffers) {
