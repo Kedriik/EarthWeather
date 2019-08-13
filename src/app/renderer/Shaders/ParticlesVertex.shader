@@ -10,6 +10,9 @@ float rand(const vec2 co) {
 }
 out vec3 WorldSpacePosition;
 void main(void) {
-    WorldSpacePosition = texture(uParticlesPositions,aParticleIndex).xyz;
+    WorldSpacePosition = texelFetch(uParticlesPositions,ivec2(aParticleIndex),0).xyz;
     gl_Position =  /*uProjectionMatrix*uViewMatrix*/vec4(WorldSpacePosition,1.0);
+    gl_Position.z = 0.0;
+    gl_Position.w = 1.0;
+    gl_PointSize = 1.0;
 }
