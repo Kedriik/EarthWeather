@@ -404,7 +404,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     else{
       topology = texture(TopologyMap, _coords);
     }
-    float elevation = (remap((topology.y),0.0,1.0,0.0,0.1));
+    float elevation = (remap((topology.y),0.0,1.0,0.0,0.05));
     if(color.z > 1.1*color.x && color.z > 1.1*color.y){
       //elevation = 0.0;
     }

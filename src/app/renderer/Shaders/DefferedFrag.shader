@@ -12,8 +12,8 @@ uniform float			uLightPower;
 uniform vec3			uCameraPosition;
 out vec4 FinalColor;
 void main(void){
-  vec2 uv = gl_FragCoord.xy;
-  uv.x/= uScreenSize.x;
+	vec2 uv = gl_FragCoord.xy;
+	uv.x/= uScreenSize.x;
 	uv.y/= uScreenSize.y;
 	vec4 color						= texture(Color, uv);
 	vec4 normal						= texture(Normal,uv);
@@ -22,8 +22,8 @@ void main(void){
 	vec4 colorProperties			= texture(ColorProperties,uv);
 	normal.xyz						= normalize(normal.xyz);
 	normal.w  						= 0.0;
-	if(colorProperties.z==1.0){
-		FinalColor=vec4(color.xyz,1);
+	if(true){//colorProperties.z==1.0){
+		FinalColor=vec4(color.xyz+vec3(normal.x,0.0,0.0),1);
 		return;
 	}
 	vec3 lightDir=normalize(uLightPosition.xyz - position.xyz);

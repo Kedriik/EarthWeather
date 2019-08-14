@@ -2,11 +2,13 @@
   precision highp float;
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
+  uniform sampler2D uBackground;
+  uniform vec2 uScreenSize;
   // layout (location = 0) out vec4 OutputColor;
   // layout (location = 1) out vec4 OutputNormal;
   // layout (location = 2) out vec4 OutputPosition;
   // layout (location = 3) out vec4 OutputColorProperties;
-  out vec4 color;
+  layout (location = 0) out vec4 color;
   in vec3 WorldSpacePosition;
   void main(void){
     // vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4(WorldSpacePosition, 1.0);
@@ -18,7 +20,9 @@
     // gl_FragDepth = (
     //     (gl_DepthRange.diff * depth) +
     //     gl_DepthRange.near + gl_DepthRange.far) / 2.0;
-
-gl_FragDepth = 0.0;
-    color = vec4(0.0,1.0,0.0,1.0);
+    vec2 uv = gl_FragCoord.xy;
+    uv.x/= uScreenSize.x;
+    uv.y/= uScreenSize.y;
+    gl_FragDepth = 0.0;
+    color = vec4(1.0,0.0,0.0,1.0)+texture(uBackground,uv);
   }
