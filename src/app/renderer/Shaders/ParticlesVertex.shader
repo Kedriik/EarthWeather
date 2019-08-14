@@ -13,5 +13,5 @@ void main(void) {
     WorldSpacePosition = texelFetch(uParticlesPositions,ivec2(aParticleIndex),0).xyz;
     gl_Position =  /*uProjectionMatrix*uViewMatrix*/vec4((2.0*WorldSpacePosition)-1.0,1.0);
     gl_Position.z = 0.0;
-    gl_PointSize = 5.0;
+    gl_PointSize = 2.0;
 }

@@ -24,5 +24,5 @@
     uv.x/= uScreenSize.x;
     uv.y/= uScreenSize.y;
     gl_FragDepth = 0.0;
-    color = vec4(1.0,0.0,0.0,1.0)+texture(uBackground,uv);
+    color = vec4(1.0,0.0,0.0,1.0);
   }

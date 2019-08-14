@@ -57,15 +57,21 @@ export class RendererComponent implements OnInit {
   PositionTexture: any;
   ColorPropertiesTexture: any;
   ///Particles///
+  CopyProgram:any;
+  CopyProgramInfo:any;
   ParticlesFramebufferFront: any;
   ParticlesFramebufferBack: any;
-  ParticlesFinalFrameBufferFront:any;
-  ParticlesFinalFrameBufferBack:any
+  ParticlesCopyFramebuffer:any;
+  ParticlesFinalFrameBufferFront: any;
+  ParticlesFinalFrameBuffer: any
+  ParticleDrawFinalProgram: any;
+  ParticleDrawFinalProgramInfo: any;
+  ParticlesFinalTexture: any;
   ParticlesBuffer: any;
   ParticlesPositionsFront: any;    //z = particles life
   ParticlesPositionsBack: any;    //z = particles life
-  ParticlesFinalTextureFront:any;
-  ParticlesFinalTextureBack:any;
+  ParticlesFinalTextureFront: any;
+  ParticlesFinalTextureBack: any;
   ParticlesVelocities: any;   //
   ParticlesVelocitiesImage: any;
   ParticleDrawProgram: any;
@@ -74,7 +80,7 @@ export class RendererComponent implements OnInit {
   ParticleComputeProgramInfo: any;
   particlesSize: number = 100;
   ParticleFrontBack: boolean = false;
-  DebugOutput:any;
+  DebugOutput: any;
   ///////////////
   DepthTexture: any;
   renderBuffer: any;
@@ -94,7 +100,7 @@ export class RendererComponent implements OnInit {
   SunSizeScale: number = 0.01;
   testCoords: any;
   Earth: Planet;
-  particlesStop:boolean = true;
+  particlesStop: boolean = true;
   ngOnInit() {
     this.start();
     requestAnimationFrame(this.render.bind(this));
@@ -260,7 +266,7 @@ export class RendererComponent implements OnInit {
     );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    
+
     this.gl.framebufferTexture2D(
       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
       this.gl.TEXTURE_2D, this.ParticlesPositionsFront, 0
@@ -271,7 +277,7 @@ export class RendererComponent implements OnInit {
       this.gl.TEXTURE_2D, this.DebugOutput, 0
     );
 
-    this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0,this.gl.COLOR_ATTACHMENT1]);
+    this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0, this.gl.COLOR_ATTACHMENT1]);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferFront);
     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -289,7 +295,7 @@ export class RendererComponent implements OnInit {
     );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    
+
     this.gl.framebufferTexture2D(
       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
       this.gl.TEXTURE_2D, this.ParticlesPositionsBack, 0
@@ -312,7 +318,7 @@ export class RendererComponent implements OnInit {
     );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    
+
     this.gl.framebufferTexture2D(
       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
       this.gl.TEXTURE_2D, this.ParticlesFinalTextureFront, 0
@@ -321,29 +327,54 @@ export class RendererComponent implements OnInit {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferFront);
     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    ////Final particle result texture back
-    this.ParticlesFinalFrameBufferBack = this.gl.createFramebuffer();
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferBack);
-    this.ParticlesFinalFrameBufferBack.width = canvas.width;
-    this.ParticlesFinalFrameBufferBack.height = canvas.height;
 
     this.ParticlesFinalTextureBack = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureBack);
     this.gl.texImage2D(
-      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesFinalFrameBufferBack.width,
-      this.ParticlesFinalFrameBufferBack.height, 0, this.gl.RGBA, this.gl.FLOAT, null
+      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesFinalFrameBufferFront.width,
+      this.ParticlesFinalFrameBufferFront.height, 0, this.gl.RGBA, this.gl.FLOAT, null
     );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    
+
+    ////Final
+    this.ParticlesFinalFrameBuffer = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBuffer);
+    this.ParticlesFinalFrameBuffer.width = canvas.width;
+    this.ParticlesFinalFrameBuffer.height = canvas.height;
+
+    this.ParticlesFinalTexture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTexture);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesFinalFrameBuffer.width,
+      this.ParticlesFinalFrameBuffer.height, 0, this.gl.RGBA, this.gl.FLOAT, null
+    );
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
     this.gl.framebufferTexture2D(
       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
-      this.gl.TEXTURE_2D, this.ParticlesFinalTextureBack, 0
+      this.gl.TEXTURE_2D, this.ParticlesFinalTexture, 0
     );
     this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0]);
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferBack);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBuffer);
     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    ///Copy
+     ////Final
+     this.ParticlesCopyFramebuffer = this.gl.createFramebuffer();
+     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesCopyFramebuffer);
+     this.ParticlesCopyFramebuffer.width = canvas.width;
+     this.ParticlesCopyFramebuffer.height = canvas.height;
+ 
+     this.gl.framebufferTexture2D(
+       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
+       this.gl.TEXTURE_2D, this.ParticlesFinalTextureBack, 0
+     );
+     this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0]);
+     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesCopyFramebuffer);
+     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     //////////////
     this.ParticlesBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ParticlesBuffer);
@@ -356,7 +387,7 @@ export class RendererComponent implements OnInit {
         indexes.push(j);
       }
     }
-    console.log("Idexes size:",indexes.length)
+    console.log("Idexes size:", indexes.length)
     this.gl.bufferData(this.gl.ARRAY_BUFFER,
       new Float32Array(indexes),
       this.gl.DYNAMIC_DRAW);
@@ -394,6 +425,33 @@ export class RendererComponent implements OnInit {
       },
     };
 
+    this.ParticleDrawFinalProgram = GLHelpers.initShaderProgram(
+      this.gl, this.vsSource, require("raw-loader!./Shaders/ParticlesFinalFragment.shader"));
+    this.ParticleDrawFinalProgramInfo = {
+      program: this.ParticleDrawFinalProgram,
+      attribLocations: {
+        particlesIndexes: this.gl.getAttribLocation(this.ParticleDrawFinalProgram, 'aVertexPosition')
+      },
+      uniformLocations: {
+        screenSize: this.gl.getUniformLocation(this.ParticleDrawFinalProgram, 'uScreenSize'),
+        front: this.gl.getUniformLocation(this.ParticleDrawFinalProgram, 'uFront'),
+        back: this.gl.getUniformLocation(this.ParticleDrawFinalProgram, 'uBack')
+      },
+    };
+
+    this.CopyProgram = GLHelpers.initShaderProgram(
+      this.gl, this.vsSource, require("raw-loader!./Shaders/ParticlesCopyFragment.shader"));
+    this.CopyProgramInfo = {
+      program: this.CopyProgram,
+      attribLocations: {
+        particlesIndexes: this.gl.getAttribLocation(this.CopyProgram, 'aVertexPosition')
+      },
+      uniformLocations: {
+        screenSize: this.gl.getUniformLocation(this.CopyProgram, 'uScreenSize'),
+        final: this.gl.getUniformLocation(this.CopyProgram, 'uFinal')
+      },
+    };
+
     this.ParticlesVelocitiesImage = new Image();
     this.ParticlesVelocitiesImage.src = require('./Textures/dirswindsigma995.png');
     this.ParticlesVelocitiesImage.onload = () => {
@@ -403,45 +461,47 @@ export class RendererComponent implements OnInit {
         this.ParticlesVelocitiesImage.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.ParticlesVelocitiesImage)
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-     // this.gl.generateMipmap(this.gl.TEXTURE_2D);
+      // this.gl.generateMipmap(this.gl.TEXTURE_2D);
       this.particlesStop = false;
     }
 
-    
+
 
   }
-  updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
-    //update
-    if(this.particlesStop){
+  computeParticles(time,deltaTime){
+    if (this.particlesStop) {
       return;
     }
+    const numComponents = 3;  // pull out 2 values per iteration
+    const type = this.gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+    const offset = 0;         // how many bytes inside the buffer to start from
+
     this.gl.useProgram(this.ParticleComputeProgramInfo.program);
-    if(this.ParticleFrontBack){
+    if (this.ParticleFrontBack) {
       this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferFront);
       this.gl.viewport(0, 0, this.particlesSize, this.particlesSize);
       this.gl.disable(this.gl.DEPTH_TEST);
-      
+
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsBack);
       this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
-    }else{
+    } else {
       this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferBack);
       this.gl.viewport(0, 0, this.particlesSize, this.particlesSize);
       this.gl.disable(this.gl.DEPTH_TEST);
-      
+
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsFront);
       this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
     }
     //this.ParticleFrontBack = !this.ParticleFrontBack; //swap buffers
 
-    
-    const numComponents = 3;  // pull out 2 values per iteration
-    const type = this.gl.FLOAT;    // the data in the buffer is 32bit floats
-    const normalize = false;  // don't normalize
-    const stride = 0;         // how many bytes to get from one set of values to the next
+
+
     // 0 = use type and numComponents above
-    const offset = 0;         // how many bytes inside the buffer to start from
+   
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.CommonBuffers.position);
 
     this.gl.vertexAttribPointer(
@@ -468,39 +528,75 @@ export class RendererComponent implements OnInit {
     this.gl.activeTexture(this.gl.TEXTURE1);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesVelocities);
     this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.windVectors, 1);
-      
+
     {
       const vertexCount = 6;
       const type = this.gl.UNSIGNED_SHORT;
       const offset = 0;
       this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
     }
-    ///////// DRAW
-    this.gl.useProgram(this.ParticleDrawProgramInfo.program);
+  }
+  updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
+    //update
 
+    const numComponents = 3;  // pull out 2 values per iteration
+    const type = this.gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+    const offset = 0;         // how many bytes inside the buffer to start from
+
+    this.gl.useProgram(this.CopyProgramInfo.program);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesCopyFramebuffer);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.enable(this.gl.BLEND);
+    //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    this.gl.disable(this.gl.BLEND);
+    this.gl.activeTexture(this.gl.TEXTURE5);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTexture);
+    this.gl.uniform1i(this.CopyProgramInfo.uniformLocations.final, 5);
+
+    this.gl.uniform2f(
+      this.CopyProgramInfo.uniformLocations.screenSize,
+      canvas.clientWidth,
+      canvas.clientHeight
+    )
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.CommonBuffers.position);
+
+    this.gl.vertexAttribPointer(
+      this.CopyProgramInfo.attribLocations.particlesIndexes,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    this.gl.enableVertexAttribArray(
+      this.CopyProgramInfo.attribLocations.particlesIndexes);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.CommonBuffers.indices);
+
+    {
+      const vertexCount = 6;
+      const type = this.gl.UNSIGNED_SHORT;
+      const offset = 0;
+      this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+    }
+ 
+    this.computeParticles(time, deltaTime);
+    ///////// DRAW front
+    this.gl.useProgram(this.ParticleDrawProgramInfo.program);
     this.gl.uniform2f(
       this.ParticleDrawProgramInfo.uniformLocations.screenSize,
       canvas.clientWidth,
       canvas.clientHeight
     )
-
-    if(this.ParticleFrontBack){
-      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferFront);
-      this.gl.activeTexture(this.gl.TEXTURE1);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureBack);
-      this.gl.uniform1i(this.ParticleDrawProgramInfo.uniformLocations.background, 1);
-    }else{
-      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferBack);
-      this.gl.activeTexture(this.gl.TEXTURE1);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureFront);
-      this.gl.uniform1i(this.ParticleDrawProgramInfo.uniformLocations.background, 1);
-    }
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferFront);
     this.gl.disable(this.gl.DEPTH_TEST);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ParticlesBuffer);
-    this.gl.viewport(0, 0, canvas.width,canvas.height);
-    this.gl.clearColor(0.0, 0.0, 0.0, 0.5);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-
+    
     this.gl.vertexAttribPointer(
       this.ParticleDrawProgramInfo.attribLocations.particlesIndexes,
       2,
@@ -510,19 +606,6 @@ export class RendererComponent implements OnInit {
       offset);
     this.gl.enableVertexAttribArray(
       this.ParticleDrawProgramInfo.attribLocations.particlesIndexes);
-    
-
-    // if(this.ParticleFrontBack){
-    //   this.gl.activeTexture(this.gl.TEXTURE0);
-    //   this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsBack);
-    //   this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
-    // }else{
-    //   this.gl.activeTexture(this.gl.TEXTURE0);
-    //   this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesPositionsFront);
-    //   this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
-    // }
-    this.ParticleFrontBack = !this.ParticleFrontBack; //swap buffers
-
     this.gl.uniform1i(this.ParticleDrawProgramInfo.uniformLocations.particlesPositions, 0);
     this.gl.uniformMatrix4fv(
       this.ParticleDrawProgramInfo.uniformLocations.viewMatrix,
@@ -534,7 +617,53 @@ export class RendererComponent implements OnInit {
       ProjectionMatrix);
 
     this.gl.drawArrays(this.gl.POINTS, 0, this.particlesSize * this.particlesSize)
+    ////////////////////////////////////////////////////
+    this.gl.useProgram(this.ParticleDrawFinalProgramInfo.program);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBuffer);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    this.gl.activeTexture(this.gl.TEXTURE3);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureFront);
+    this.gl.uniform1i(this.ParticleDrawFinalProgramInfo.uniformLocations.front, 3);
 
+    this.gl.uniform2f(
+      this.ParticleDrawFinalProgramInfo.uniformLocations.screenSize,
+      canvas.clientWidth,
+      canvas.clientHeight
+    )
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.CommonBuffers.position);
+
+    this.gl.vertexAttribPointer(
+      this.ParticleDrawFinalProgramInfo.attribLocations.particlesIndexes,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    this.gl.enableVertexAttribArray(
+      this.ParticleDrawFinalProgramInfo.attribLocations.particlesIndexes);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.CommonBuffers.indices);
+
+    {
+      const vertexCount = 6;
+      const type = this.gl.UNSIGNED_SHORT;
+      const offset = 0;
+      this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+    }
+    ////////
+    this.gl.activeTexture(this.gl.TEXTURE3);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureBack);
+    this.gl.uniform1i(this.ParticleDrawFinalProgramInfo.uniformLocations.front, 3);
+
+    {
+      const vertexCount = 6;
+      const type = this.gl.UNSIGNED_SHORT;
+      const offset = 0;
+      this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+    }
+    
+    this.ParticleFrontBack = !this.ParticleFrontBack; //swap buffers
   }
 
   initTextureFramebuffer() {
@@ -726,11 +855,11 @@ export class RendererComponent implements OnInit {
 
   }
   drawScene(gl, buffers, deltaTime) {
-    this.updateAndDrawParticles(this.ProjectionMatrix,this.ViewMatrix,this.CommonBuffers.loopTotalTime,deltaTime);
+    this.updateAndDrawParticles(this.ProjectionMatrix, this.ViewMatrix, this.CommonBuffers.loopTotalTime, deltaTime);
     this.drawDeffered(gl, buffers);
     this.CommonBuffers.loopTotalTime += deltaTime;
     // return;
-    
+
     // if (this.bPauseRendering) {
     //   return;
     // }
@@ -742,7 +871,7 @@ export class RendererComponent implements OnInit {
     // gl.clearDepth(1.0);                 // Clear everything
     // gl.depthFunc(gl.LESS);            // Near things obscure far things
     // gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-    
+
     // //camera handling
     // if (vec3.dist(this.camera.Position, this.Earth.Position) < 10) {
     //   let tvec = vec3.create();
@@ -778,7 +907,7 @@ export class RendererComponent implements OnInit {
     //   //   this.planets[i].drawOcean(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
     //   //   this.drawDeffered(gl, buffers);
     //   // }
-      
+
     //   gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
     //   gl.clearColor(0.0, 0.0, 0.0, 0.0);
     //   gl.clear(gl.COLOR_BUFFER_BIT)
@@ -874,11 +1003,11 @@ export class RendererComponent implements OnInit {
     );
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D,this.ParticlesVelocities);// //this.ParticlesFinalTexture);//this.rttTexture);
+    gl.bindTexture(gl.TEXTURE_2D, this.ParticlesVelocities);// //this.ParticlesFinalTexture);//this.rttTexture);
     gl.uniform1i(this.DefferedShaderProgramInfo.uniformLocations.colorSampler, 0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.ParticlesFinalTextureFront);//this.NormalTexture);
+    gl.bindTexture(gl.TEXTURE_2D, this.ParticlesFinalTexture);//this.NormalTexture);
     gl.uniform1i(this.DefferedShaderProgramInfo.uniformLocations.normalSampler, 1);
 
     gl.activeTexture(gl.TEXTURE2);
