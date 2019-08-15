@@ -8,6 +8,6 @@ void main(void){
     vec2 uv = gl_FragCoord.xy;
     uv.x /= uScreenSize.x;
     uv.y /= uScreenSize.y;
-
-    Final = texture(uFront, uv);
+    vec4 frontColor = texture(uFront, uv);
+    Final = frontColor;
 }

@@ -22,7 +22,7 @@ void main(void){
     vec4 particlePosition   = textureGrad(uParticlesPositions,uv,vec2(0.0001),vec2(0.0001));
     particlePosition.w     -= uDeltaTime;
 
-    if( rand(vec2(sin(uDeltaTime) , sin(uTime)) + particlePosition.xy) > 0.99){
+    if( particlePosition.w<=0.0|| rand(vec2(sin(uDeltaTime) , sin(uTime)) + particlePosition.xy) > 0.999){
         float x             = abs((rand(vec2(sin(uDeltaTime) , sin(uTime)) + uv)*100.0))/100.0;
         float y             = abs((rand(vec2(sin(uTime) , sin(uDeltaTime)) + uv)*100.0))/100.0;
         particlePosition.x  = x;
@@ -33,7 +33,7 @@ void main(void){
 
 
     //vec4 currentVelocity    = textureGrad(uWindVectors, particlePosition.xy,vec2(0.0001),vec2(0.0001));
-    vec4 currentVelocity    = texture(uWindVectors, particlePosition.xy);
+    vec4 currentVelocity    = texture(uWindVectors, vec2(particlePosition.x,1.0-particlePosition.y));
     float speed = sqrt(pow(currentVelocity.y,2.0)+pow(currentVelocity.z,2.0));
     if(speed < 0.01){
         particlePosition.w = 0.0;
