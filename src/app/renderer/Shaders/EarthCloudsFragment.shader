@@ -355,7 +355,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     spherePos=uViewMatrix*uModelMatrix*spherePos;
     return distance(p,spherePos.xyz) - R;
   }
-  vec3 color=vec3(0,1,0);
+  vec4 color;
   vec3 materialProp;
 
   vec2 coordinates(vec3 dir){
@@ -427,10 +427,10 @@ void main(void) {
   vec3 p = cameraPos.xyz + depth * ray;
   if(abs(dist) <= epsilon){
     if(_coords.x>0.95 || _coords.x<0.05 || _coords.y>0.95 || _coords.y<0.05){
-      color = textureGrad(ColorMap, _coords,vec2(0.0001),vec2(0.0001)).xyz;
+      color = textureGrad(ColorMap, _coords,vec2(0.0001),vec2(0.0001));
     }
     else{
-      color = texture(ColorMap, _coords).xyz;
+      color = texture(ColorMap, _coords);
     }
     vec3 normal = estimateNormal(p);
     normal = (uInverseViewMatrix*vec4(normal,0.0)).xyz;

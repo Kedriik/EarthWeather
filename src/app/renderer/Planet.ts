@@ -412,7 +412,7 @@ export class Planet implements IRenderObject {
       this.drawRings(gl, ViewMatrix, ProjectionMatrix, this.RingsBuffer);
     }
   }
-  drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers) {
+  drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers,cloudsTexture = this.CloudsTexture) {
     {
       const numComponents = 3;  // pull out 2 values per iteration
       const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -443,7 +443,7 @@ export class Planet implements IRenderObject {
     gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.topologyMap, 6);
 
     gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, this.CloudsTexture);
+    gl.bindTexture(gl.TEXTURE_2D, cloudsTexture);
     gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.colorMap, 7);
     // Set the shader uniforms
 

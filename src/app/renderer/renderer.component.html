@@ -1,3 +1,8 @@
-  <canvas (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)= "pauseRendering()" id="glcanvas" width="0" height="600" align-c>
-    Your browser doesn't appear to support the HTML5 
-  </canvas>
+ <div >
+  <canvas class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)= "pauseRendering()" id="glcanvas" width="0" height="600" align-c>
+      Your browser doesn't appear to support the HTML5 
+    </canvas>
+</div>
+<div class="menu">
+    <button class="button" (click)="cloudsMode()" mat-button>Clouds mode</button>
+</div>

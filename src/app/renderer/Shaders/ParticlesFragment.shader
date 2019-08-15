@@ -2,27 +2,20 @@
   precision highp float;
   uniform mat4 uViewMatrix;
   uniform mat4 uProjectionMatrix;
-  uniform sampler2D uBackground;
   uniform vec2 uScreenSize;
-  // layout (location = 0) out vec4 OutputColor;
-  // layout (location = 1) out vec4 OutputNormal;
-  // layout (location = 2) out vec4 OutputPosition;
-  // layout (location = 3) out vec4 OutputColorProperties;
   layout (location = 0) out vec4 color;
   in vec3 WorldSpacePosition;
   void main(void){
-    // vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4(WorldSpacePosition, 1.0);
-    // float C =1.0,
-    // near = 0.1,
-    // far = 100000.0;
-    // float depth;
-    // depth=(2.0*log2(max(1.0/1000000.0,C*Pclip.w + 1.0)) / log2(max(1.0/1000000.0,C*far + 1.0) )- 1.0);
-    // gl_FragDepth = (
-    //     (gl_DepthRange.diff * depth) +
-    //     gl_DepthRange.near + gl_DepthRange.far) / 2.0;
     vec2 uv = gl_FragCoord.xy;
     uv.x/= uScreenSize.x;
     uv.y/= uScreenSize.y;
-    //gl_FragDepth = 0.0;
-    color = vec4(1.0,1.0,1.0,1.0);
+    color = vec4(1.0);
+    vec2 coord = gl_PointCoord - vec2(0.5);  //from [0,1] to [-0.5,0.5]
+    float alfa = 1.0;
+    float d = length(coord);
+    if(d > 0.5)                  //outside of circle radius?
+      discard;
+    else 
+      color.w*= (1.0-d); //d= 0.5 .. 0.0
+    
   }

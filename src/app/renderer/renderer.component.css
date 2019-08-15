@@ -5,3 +5,11 @@ canvas{
     background-color: black;
     margin:0;
 }
+
+button{
+    background-color: black;
+    color:green;
+    border: none;
+    outline: none;
+    margin:0;
+}
