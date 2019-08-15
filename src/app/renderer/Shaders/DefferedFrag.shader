@@ -15,15 +15,15 @@ void main(void){
 	vec2 uv = gl_FragCoord.xy;
 	uv.x/= uScreenSize.x;
 	uv.y/= uScreenSize.y;
-	vec4 color						= texture(Color, vec2(uv.x, 1.0-uv.y));
+	vec4 color						= texture(Color, uv);
 	vec4 normal						= texture(Normal,uv);
 	vec4 position					= texture(Position,uv);
 	vec4 depth  					= texture(Depth,uv);
 	vec4 colorProperties			= texture(ColorProperties,uv);
 	normal.xyz						= normalize(normal.xyz);
-	//normal.w  						= 0.0;
-	if(true){//colorProperties.z==1.0){
-		FinalColor=normal;//mix(normal,color,0.9);
+	normal.w  						= 0.0;
+	if(colorProperties.z==1.0){
+		FinalColor=vec4(color.xyz,1);
 		return;
 	}
 	vec3 lightDir=normalize(uLightPosition.xyz - position.xyz);

@@ -9,5 +9,5 @@ void main(void){
     uv.x /= uScreenSize.x;
     uv.y /= uScreenSize.y;
 
-    Back = .99*texture(uFinal, uv);
+    Back = .9*texture(uFinal, uv);
 }
