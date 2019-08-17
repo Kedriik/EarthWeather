@@ -9,7 +9,8 @@ canvas{
 button{
     background-color: black;
     color:green;
-    border: none;
+    border: solid;
+    border-color: green;
     outline: none;
     margin:0;
 }

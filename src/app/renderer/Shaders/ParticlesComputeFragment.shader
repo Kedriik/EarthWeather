@@ -31,8 +31,6 @@ void main(void){
         particlePosition.z  = 0.0;
     }
 
-
-    //vec4 currentVelocity    = textureGrad(uWindVectors, particlePosition.xy,vec2(0.0001),vec2(0.0001));
     vec4 currentVelocity    = texture(uWindVectors, vec2(1.0-particlePosition.x,particlePosition.y));
     float speed = sqrt(pow(currentVelocity.y,2.0)+pow(currentVelocity.z,2.0));
     if(speed < 0.5){
@@ -42,12 +40,8 @@ void main(void){
     
     float scale = 0.1;
 
-    //particlePosition.x = particlePosition.x;// + (/*currentVelocity.z - */127.0/255.0);
-    //particlePosition.y = particlePosition.y;// + (/*currentVelocity.y - */127.0/255.0);
-    particlePosition.xy = particlePosition.xy + scale*uDeltaTime*(vec2(currentVelocity.zy - vec2(127.0/255.0)));
+    particlePosition.xy = particlePosition.xy - scale*uDeltaTime*(vec2(currentVelocity.zy - vec2(127.0/255.0)));
     particlePosition.x = abs(fract(particlePosition.x));
     particlePosition.y = abs(fract(particlePosition.y));
-    //particlePosition.x = clamp(float(particlePosition.x),0.0,1.0);
-    //particlePosition.y = clamp(float(particlePosition.y),0.0,1.0);
     OutputPositions = particlePosition;
 }

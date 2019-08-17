@@ -36,6 +36,10 @@ void main(void){
 	float attenuation=uLightPower/pow(distance(position.xyz,uLightPosition),2.0);
 	diffuse*=attenuation;
 	specular*=attenuation;
-	vec3 lighting=specular+diffuse+0.1*color.xyz;
+	float ambient = 0.1;
+	if(color.x == 1.0 && color.y == 1.0 && color.z ==1.0 ){
+		ambient = 0.3;
+	}
+	vec3 lighting=specular+diffuse+ambient*color.xyz;
 	FinalColor = vec4(lighting,colorProperties.y);
 }

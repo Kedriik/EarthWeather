@@ -80,9 +80,10 @@ export class RendererComponent implements OnInit {
   ParticleDrawProgramInfo: any;
   ParticleComputeProgram: any;
   ParticleComputeProgramInfo: any;
-  ParticlesSpeedsImage:any;
-  ParticlesSpeeds:any;
+  ParticlesSpeedsImage: any;
+  ParticlesSpeeds: any;
   particlesSize: number = 500;
+  currentParticlesSize:number = 10;
   ParticleFrontBack: boolean = false;
   DebugOutput: any;
   ParticleTextureWidth = 4096;//1300;
@@ -107,7 +108,15 @@ export class RendererComponent implements OnInit {
   SunSizeScale: number = 0.01;
   testCoords: any;
   Earth: Planet;
+  cloudsButtonName = "clouds";
+  atmosphereButtonName = "atmosphere:on";
+  topologyButtonName = "topology:on";
+  renderCloudsButtonName = "clouds:on";
   particlesStop: boolean = true;
+  renderAtmosphere: boolean = true;
+  renderTopology: boolean = true;
+  renderClouds: boolean = true;
+
   ngOnInit() {
     this.start();
     requestAnimationFrame(this.render.bind(this));
@@ -152,7 +161,7 @@ export class RendererComponent implements OnInit {
     this.Earth.hasAtmosphere = true;
     this.Earth.hasClouds = true;
     this.Earth.Position = vec3.fromValues(0, 0, 0);
-    this.Earth.RaymarchSteps = 64;
+    this.Earth.RaymarchSteps = 32;
     this.planets.push(this.Earth)
 
     if (this.gl) {
@@ -245,7 +254,7 @@ export class RendererComponent implements OnInit {
       alert("Unable to initialize WebGL. Your browser may not support it.");
       this.gl = null;
     }
-    
+
     return this.gl;
   }
   initParticlesFramebuffer() {
@@ -354,12 +363,6 @@ export class RendererComponent implements OnInit {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
 
-    // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.ParticlesFinalFrameBuffer.width,
-    //   this.ParticlesFinalFrameBuffer.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null)
-    //  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    //  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-    //  this.gl.generateMipmap(this.gl.TEXTURE_2D);
-
     this.gl.framebufferTexture2D(
       this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
       this.gl.TEXTURE_2D, this.ParticlesFinalTexture, 0
@@ -369,7 +372,6 @@ export class RendererComponent implements OnInit {
     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     ///Copy
-    ////Final
     this.ParticlesCopyFramebuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesCopyFramebuffer);
     this.ParticlesCopyFramebuffer.width = this.ParticleTextureWidth;
@@ -395,7 +397,7 @@ export class RendererComponent implements OnInit {
         indexes.push(j);
       }
     }
-    console.log("Idexes size:", indexes.length)
+
     this.gl.bufferData(this.gl.ARRAY_BUFFER,
       new Float32Array(indexes),
       this.gl.DYNAMIC_DRAW);
@@ -556,7 +558,7 @@ export class RendererComponent implements OnInit {
     if (this.particlesStop) {
       return;
     }
-  
+
     const numComponents = 3;  // pull out 2 values per iteration
     const type = this.gl.FLOAT;    // the data in the buffer is 32bit floats
     const normalize = false;  // don't normalize
@@ -610,7 +612,7 @@ export class RendererComponent implements OnInit {
     this.gl.viewport(0, 0, this.ParticleTextureWidth, this.ParticleTextureHeight);
     this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-  
+
     this.gl.vertexAttribPointer(
       this.ParticleDrawProgramInfo.attribLocations.particlesIndexes,
       2,
@@ -895,55 +897,60 @@ export class RendererComponent implements OnInit {
     }
     this.ViewMatrix = this.camera.getViewMatrix();
 
-    for (let index = 0; index < this.planets.length; index++) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+    gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+    gl.depthFunc(gl.LEQUAL);
+    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.Sun.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
+    this.drawDeffered(gl, buffers);
 
-      let i = this.PlanetAndDists[index][0];
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+    gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+    gl.depthFunc(gl.LEQUAL);
+    this.Earth.animate(deltaTime, buffers);
+    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
+    this.drawDeffered(gl, buffers);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    
+    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.disable(gl.DEPTH_TEST);
+    if (this.renderAtmosphere) {
+      this.Earth.drawDefferedAtmosphere(gl, buffers, this.ViewMatrix, this.ProjectionMatrix, this.DefferedShaderProgramInfo
+        , this.LightPosition, this.LightColor, this.LightPower, this.camera, this.PositionTexture);
+    }
+
+    gl.cullFace(gl.BACK);
+
+    if (this.renderClouds) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
       gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-      gl.clearColor(0.0, 0.0, 0.0, 0.0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-      gl.depthFunc(gl.LEQUAL);
-      this.planets[i].animate(deltaTime, buffers);
-      this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-      this.planets[i].draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
-      this.drawDeffered(gl, buffers);
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
-      gl.clearColor(0.0, 0.0, 0.0, 0.0);
+      gl.depthFunc(gl.LESS);            // Near things obscure far things
       gl.clear(gl.COLOR_BUFFER_BIT)
-      //gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer)
-      gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);;
-      gl.enable(gl.CULL_FACE);
-      gl.cullFace(gl.BACK);
-      gl.disable(gl.DEPTH_TEST);
-      if (this.planets[i].hasAtmosphere) {
-        this.planets[i].drawDefferedAtmosphere(gl, buffers, this.ViewMatrix, this.ProjectionMatrix, this.DefferedShaderProgramInfo
-          , this.LightPosition, this.LightColor, this.LightPower, this.camera, this.PositionTexture);
+      gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+      if (!this.particlesStop) {
+        this.Earth.drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesFinalTexture);
       }
-
-      gl.cullFace(gl.BACK);
-
-      if (this.planets[i].PlanetName == "Earth") {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
-        gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-        gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-        gl.depthFunc(gl.LESS);            // Near things obscure far things
-        gl.clear(gl.COLOR_BUFFER_BIT)
-        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-       // this.planets[i].CloudsTexture = this.ParticlesFinalTexture
-        if(!this.particlesStop){
-          this.planets[i].drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers,this.ParticlesFinalTexture);
-        }
-        else{
-          this.planets[i].drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
-        }
-        this.drawDeffered(gl, buffers);
+      else {
+        this.Earth.drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
       }
-      //particle final draw
-      this.updateAndDrawParticles(this.ProjectionMatrix, this.ViewMatrix, this.CommonBuffers.loopTotalTime, deltaTime)
-
+      this.drawDeffered(gl, buffers);
     }
+    //particle final draw
+    this.updateAndDrawParticles(this.ProjectionMatrix, this.ViewMatrix, this.CommonBuffers.loopTotalTime, deltaTime)
 
     this.CommonBuffers.loopTotalTime += deltaTime;
   }
@@ -953,29 +960,20 @@ export class RendererComponent implements OnInit {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.disable(gl.DEPTH_TEST);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
 
-    {
-      const numComponents = 3;  // pull out 2 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-
-      gl.vertexAttribPointer(
-        this.DefferedShaderProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-      gl.enableVertexAttribArray(
-        this.DefferedShaderProgramInfo.attribLocations.vertexPosition);
-    }
-    // Tell WebGL which indices to use to index the vertices
+    gl.vertexAttribPointer(
+      this.DefferedShaderProgramInfo.attribLocations.vertexPosition,
+      3,
+      gl.FLOAT,
+      false,
+      0,
+      0);
+    gl.enableVertexAttribArray(
+      this.DefferedShaderProgramInfo.attribLocations.vertexPosition);
+    
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    // Tell WebGL to use our program when drawing
+    
     gl.useProgram(this.DefferedShaderProgramInfo.program);
 
     gl.uniform2f(
@@ -1029,12 +1027,8 @@ export class RendererComponent implements OnInit {
     gl.bindTexture(gl.TEXTURE_2D, this.DepthTexture);
     gl.uniform1i(this.DefferedShaderProgramInfo.uniformLocations.depthSampler, 4);
 
-    {
-      const vertexCount = 6;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
     gl.disable(gl.BLEND);
   }
 
@@ -1066,10 +1060,45 @@ export class RendererComponent implements OnInit {
     //this.inputTracker.init(canvas);
   }
 
-  cloudsMode(){
+  cloudsMode() {
     this.particlesStop = !this.particlesStop;
-   // this.renderer.nativeElement.focus();
+    if (this.particlesStop) {
+      this.cloudsButtonName = "wind particles"
+    }
+    else {
+      this.cloudsButtonName = "clouds"
+    }
     this.bPauseRendering = false;
-    console.log(this.bPauseRendering)
+  }
+  atmosphereMode() {
+    this.renderAtmosphere = !this.renderAtmosphere;
+    if (this.renderAtmosphere) {
+      this.atmosphereButtonName = "atmosphere:on";
+    }
+    else {
+      this.atmosphereButtonName = "atmosphere:off";
+    }
+    this.bPauseRendering = false;
+  }
+  
+  topologyMode() {
+    this.renderTopology = !this.renderTopology;
+    if (this.renderTopology) {
+      this.topologyButtonName = "topology:on";
+    }
+    else {
+      this.topologyButtonName = "topology:off";
+    }
+    this.bPauseRendering = false;
+  }
+  renderCloudsMode() {
+    this.renderClouds = !this.renderClouds;
+    if (this.renderTopology) {
+      this.renderCloudsButtonName = "clouds:on";
+    }
+    else {
+      this.renderCloudsButtonName = "clouds:off";
+    }
+    this.bPauseRendering = false;
   }
 }

@@ -415,7 +415,7 @@ void main(void) {
   ray = rayDirection(45.0, uScreenSize, gl_FragCoord.xy);//normalize(ray);
   float depth = 0.0;
   float epsilon=0.00001;
-  for(int i=0; i<64; i++){
+  for(int i=0; i<16; i++){
     vec3 p = cameraPos.xyz + depth * ray;
     depth = depth += sceneSDF(p);      
   }
@@ -428,13 +428,13 @@ void main(void) {
     int octaves = 4;
     float f=5.0;
     float time = uTime*0.1;
-    color = orange2;
-    color += clamp(fbm_2(vec4(1.5*f*_dir,time),A,octaves),0.0,0.5)*yellow;
-    color += clamp(fbm_2(vec4(2.0*f*_dir+y1Offset,time),A,octaves),0.0,0.5)*yellow1;
-    color += clamp(fbm_2(vec4(1.5*f*_dir+oOffset,time),A,octaves),0.0,0.5)*orange;
-    color += clamp(fbm_2(vec4(2.0*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*orange1;
-    color += clamp(fbm_2(vec4(1.5*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*white;
-    color += clamp(fbm_2(vec4(2.0*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*white;
+    color = yellow1;
+    // color += clamp(fbm_2(vec4(1.5*f*_dir,time),A,octaves),0.0,0.5)*yellow;
+    // color += clamp(fbm_2(vec4(2.0*f*_dir+y1Offset,time),A,octaves),0.0,0.5)*yellow1;
+    // color += clamp(fbm_2(vec4(1.5*f*_dir+oOffset,time),A,octaves),0.0,0.5)*orange;
+    // color += clamp(fbm_2(vec4(2.0*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*orange1;
+    // color += clamp(fbm_2(vec4(1.5*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*white;
+    // color += clamp(fbm_2(vec4(2.0*f*_dir+o1Offset,time),A,octaves),0.0,0.5)*white;
     vec3 normal=estimateNormal(p);
     normal=(uInverseViewMatrix*vec4(normal,0.0)).xyz;
     p=(uInverseViewMatrix*vec4(p,1.0)).xyz;

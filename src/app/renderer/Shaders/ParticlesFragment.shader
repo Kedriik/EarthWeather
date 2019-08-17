@@ -16,6 +16,6 @@
     if(d > 0.5)                  //outside of circle radius?
       discard;
     else 
-      color.w*= (1.0-d); //d= 0.5 .. 0.0
+      color.w*= (1.0-2.0*d); //d= 0.5 .. 0.0
     
   }

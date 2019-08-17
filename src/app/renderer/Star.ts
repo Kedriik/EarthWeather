@@ -26,9 +26,9 @@ export class Star implements IRenderObject {
 
   AtmosphereProgram: any;
   AtmosphereProgramInfo: any;
-  AtmosphereSphereBuffers:any;
-  AtmosphereSphereProgramInfo:any;
-  AtmosphereLayerTexture:any;
+  AtmosphereSphereBuffers: any;
+  AtmosphereSphereProgramInfo: any;
+  AtmosphereLayerTexture: any;
   CoronaProgram: any;
   CoronaProgramInfo: any;
   hasAtmosphere = true;
@@ -41,8 +41,8 @@ export class Star implements IRenderObject {
   RotationSpeed: vec3;
   ModelMatrix: mat4;
 
-  ColorImage:any;
-  ColorTexture:any;
+  ColorImage: any;
+  ColorTexture: any;
   Color: vec3;
   Power: any;
   init(gl) {
@@ -68,7 +68,7 @@ export class Star implements IRenderObject {
 
     this.AtmosphereProgram = GLHelpers.initShaderProgram(
       gl, this.vsSource, require("raw-loader!./Shaders/SunAtmosphereFragment.shader"));
-      this.AtmosphereProgramInfo = {
+    this.AtmosphereProgramInfo = {
       program: this.AtmosphereProgram,
       attribLocations: {
         vertexPosition: gl.getAttribLocation(this.AtmosphereProgram, 'aVertexPosition'),
@@ -119,7 +119,7 @@ export class Star implements IRenderObject {
     this.Position[2] = 0.0;
     this.Power = 20000000000.0;
     this.Size = 695.5;
-    
+
   }
   draw(gl, ViewMatrix, ProjectionMatrix, buffers) {
     const sunModelMatrix = mat4.create();
@@ -281,7 +281,7 @@ export class Star implements IRenderObject {
     LightColor, LightPower, camera, PositionTexture) {
     if (!this.hasAtmosphere)
       return;
-    
+
     let AtmosphereModelMatrix: mat4;
     AtmosphereModelMatrix = mat4.create();
     this.ModelMatrix = mat4.create();
@@ -294,7 +294,7 @@ export class Star implements IRenderObject {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE);
     gl.disable(gl.DEPTH_TEST);
-   
+
     {
       const numComponents = 3;  // pull out 2 values per iteration
       const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -392,77 +392,77 @@ export class Star implements IRenderObject {
     }
     gl.disable(gl.BLEND);
   }
-  animate(deltaTime,buffers) {
+  animate(deltaTime, buffers) {
 
   }
-  rotate(angle, axis){
-    if(axis == "forward" ){
-      let rotateAroundVector=vec3.create();
-      vec3.copy(rotateAroundVector,this.Forward);
-      let rotateQuat=quat.create();
-      quat.setAxisAngle(rotateQuat, rotateAroundVector,angle);
-      let rotateMatrix=mat4.create();
-      mat4.fromQuat(rotateMatrix,rotateQuat);
-      let v4ForwardRotated=vec4.create();
-      vec4.transformMat4(v4ForwardRotated,[this.Forward[0],this.Forward[1],this.Forward[2],0],rotateMatrix);
-      let v4UpRotated=vec4.create();
-      vec4.transformMat4(v4UpRotated,[this.Up[0],this.Up[1],this.Up[2],0],rotateMatrix);
-      this.Forward[0]=v4ForwardRotated[0];
-      this.Forward[1]=v4ForwardRotated[1];
-      this.Forward[2]=v4ForwardRotated[2];
-      this.Up[0]=v4UpRotated[0];
-      this.Up[1]=v4UpRotated[1];
-      this.Up[2]=v4UpRotated[2];
-      mat4.multiply(this.ModelMatrix,this.ModelMatrix,rotateMatrix);
+  rotate(angle, axis) {
+    if (axis == "forward") {
+      let rotateAroundVector = vec3.create();
+      vec3.copy(rotateAroundVector, this.Forward);
+      let rotateQuat = quat.create();
+      quat.setAxisAngle(rotateQuat, rotateAroundVector, angle);
+      let rotateMatrix = mat4.create();
+      mat4.fromQuat(rotateMatrix, rotateQuat);
+      let v4ForwardRotated = vec4.create();
+      vec4.transformMat4(v4ForwardRotated, [this.Forward[0], this.Forward[1], this.Forward[2], 0], rotateMatrix);
+      let v4UpRotated = vec4.create();
+      vec4.transformMat4(v4UpRotated, [this.Up[0], this.Up[1], this.Up[2], 0], rotateMatrix);
+      this.Forward[0] = v4ForwardRotated[0];
+      this.Forward[1] = v4ForwardRotated[1];
+      this.Forward[2] = v4ForwardRotated[2];
+      this.Up[0] = v4UpRotated[0];
+      this.Up[1] = v4UpRotated[1];
+      this.Up[2] = v4UpRotated[2];
+      mat4.multiply(this.ModelMatrix, this.ModelMatrix, rotateMatrix);
     }
 
-    if(axis == "up" ){
-      let rotateAroundVector=vec3.create();
-      vec3.copy(rotateAroundVector,this.Up);
-      let rotateQuat=quat.create();
-      quat.setAxisAngle(rotateQuat, rotateAroundVector,angle);
-      let rotateMatrix=mat4.create();
-      mat4.fromQuat(rotateMatrix,rotateQuat);
-      let v4ForwardRotated=vec4.create();
-      vec4.transformMat4(v4ForwardRotated,[this.Forward[0],this.Forward[1],this.Forward[2],0],rotateMatrix);
-      let v4UpRotated=vec4.create();
-      vec4.transformMat4(v4UpRotated,[this.Up[0],this.Up[1],this.Up[2],0],rotateMatrix);
-      this.Forward[0]=v4ForwardRotated[0];
-      this.Forward[1]=v4ForwardRotated[1];
-      this.Forward[2]=v4ForwardRotated[2];
-      this.Up[0]=v4UpRotated[0];
-      this.Up[1]=v4UpRotated[1];
-      this.Up[2]=v4UpRotated[2];
-      mat4.multiply(this.ModelMatrix,this.ModelMatrix,rotateMatrix);
+    if (axis == "up") {
+      let rotateAroundVector = vec3.create();
+      vec3.copy(rotateAroundVector, this.Up);
+      let rotateQuat = quat.create();
+      quat.setAxisAngle(rotateQuat, rotateAroundVector, angle);
+      let rotateMatrix = mat4.create();
+      mat4.fromQuat(rotateMatrix, rotateQuat);
+      let v4ForwardRotated = vec4.create();
+      vec4.transformMat4(v4ForwardRotated, [this.Forward[0], this.Forward[1], this.Forward[2], 0], rotateMatrix);
+      let v4UpRotated = vec4.create();
+      vec4.transformMat4(v4UpRotated, [this.Up[0], this.Up[1], this.Up[2], 0], rotateMatrix);
+      this.Forward[0] = v4ForwardRotated[0];
+      this.Forward[1] = v4ForwardRotated[1];
+      this.Forward[2] = v4ForwardRotated[2];
+      this.Up[0] = v4UpRotated[0];
+      this.Up[1] = v4UpRotated[1];
+      this.Up[2] = v4UpRotated[2];
+      mat4.multiply(this.ModelMatrix, this.ModelMatrix, rotateMatrix);
     }
 
-    if(axis == "right"){
-      let rotateAroundVector=vec3.create();
-      let right=vec3.create();
-      let forward=vec3.create();
-      let up=vec3.create();
-      vec3.normalize(forward,this.Forward);
-      vec3.normalize(up,this.Up);
-      vec3.cross(right,forward,up);
-      vec3.normalize(rotateAroundVector,right);
-      let rotateQuat=quat.create();
-      quat.setAxisAngle(rotateQuat, rotateAroundVector,angle);
-      let rotateMatrix=mat4.create();
-      mat4.fromQuat(rotateMatrix,rotateQuat);
-      let v4ForwardRotated=vec4.create();
-      vec4.transformMat4(v4ForwardRotated,[this.Forward[0],this.Forward[1],this.Forward[2],0],rotateMatrix);
-      let v4UpRotated=vec4.create();
-      vec4.transformMat4(v4UpRotated,[this.Up[0],this.Up[1],this.Up[2],0],rotateMatrix);
-      this.Forward[0]=v4ForwardRotated[0];
-      this.Forward[1]=v4ForwardRotated[1];
-      this.Forward[2]=v4ForwardRotated[2];
-      this.Up[0]=v4UpRotated[0];
-      this.Up[1]=v4UpRotated[1];
-      this.Up[2]=v4UpRotated[2];
-      mat4.multiply(this.ModelMatrix,this.ModelMatrix,rotateMatrix);
+    if (axis == "right") {
+      let rotateAroundVector = vec3.create();
+      let right = vec3.create();
+      let forward = vec3.create();
+      let up = vec3.create();
+      vec3.normalize(forward, this.Forward);
+      vec3.normalize(up, this.Up);
+      vec3.cross(right, forward, up);
+      vec3.normalize(rotateAroundVector, right);
+      let rotateQuat = quat.create();
+      quat.setAxisAngle(rotateQuat, rotateAroundVector, angle);
+      let rotateMatrix = mat4.create();
+      mat4.fromQuat(rotateMatrix, rotateQuat);
+      let v4ForwardRotated = vec4.create();
+      vec4.transformMat4(v4ForwardRotated, [this.Forward[0], this.Forward[1], this.Forward[2], 0], rotateMatrix);
+      let v4UpRotated = vec4.create();
+      vec4.transformMat4(v4UpRotated, [this.Up[0], this.Up[1], this.Up[2], 0], rotateMatrix);
+      this.Forward[0] = v4ForwardRotated[0];
+      this.Forward[1] = v4ForwardRotated[1];
+      this.Forward[2] = v4ForwardRotated[2];
+      this.Up[0] = v4UpRotated[0];
+      this.Up[1] = v4UpRotated[1];
+      this.Up[2] = v4UpRotated[2];
+      mat4.multiply(this.ModelMatrix, this.ModelMatrix, rotateMatrix);
     }
   }
-  translate(vector){
+  translate(vector) {
 
   }
 }

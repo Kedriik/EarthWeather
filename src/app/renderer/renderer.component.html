@@ -1,8 +1,15 @@
- <div >
-  <canvas class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)= "pauseRendering()" id="glcanvas" width="0" height="600" align-c>
-      Your browser doesn't appear to support the HTML5 
+<div>
+    <canvas class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)="pauseRendering()"
+        id="glcanvas" width="0" height="1000" align-c>
+        Your browser doesn't appear to support the HTML5
     </canvas>
 </div>
 <div class="menu">
-    <button class="button" (click)="cloudsMode()" mat-button>Clouds mode</button>
+    <button class="button" (click)="atmosphereMode()" mat-button>{{atmosphereButtonName}}</button>
+    <button class="button" (click)="renderCloudsMode()" mat-button>{{renderCloudsButtonName}}</button>
+    <button class="button" (click)="cloudsMode()" mat-button>{{cloudsButtonName}}</button>
+</div>
+<div class="help">
+        <font color="green"> Use W,S,A,D,Q and E to translate camera
+    Use I,J,K,L,U and O to rotate camera </font>
 </div>
