@@ -1,3 +1,5 @@
+![Winds on earth](https://raw.githubusercontent.com/Kedriik/EarthWeather/master/EarthWeatherLogo.jpg)
+
 # EarthWeather
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.8.
