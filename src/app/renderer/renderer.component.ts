@@ -10,6 +10,7 @@ import { Star } from './Star'
 import { GLHelpers } from './glhelpers'
 
 let canvas: any;
+let menu:any;
 declare var require: any
 @Component({
   selector: 'app-renderer',
@@ -82,7 +83,7 @@ export class RendererComponent implements OnInit {
   ParticleComputeProgramInfo: any;
   ParticlesSpeedsImage: any;
   ParticlesSpeeds: any;
-  particlesSize: number = 500;
+  particlesSize: number = 200;
   currentParticlesSize:number = 10;
   ParticleFrontBack: boolean = false;
   DebugOutput: any;
@@ -108,7 +109,7 @@ export class RendererComponent implements OnInit {
   SunSizeScale: number = 0.01;
   testCoords: any;
   Earth: Planet;
-  cloudsButtonName = "clouds";
+  cloudsButtonName = "wind particles";
   atmosphereButtonName = "atmosphere:on";
   topologyButtonName = "topology:on";
   renderCloudsButtonName = "clouds:on";
@@ -116,14 +117,30 @@ export class RendererComponent implements OnInit {
   renderAtmosphere: boolean = true;
   renderTopology: boolean = true;
   renderClouds: boolean = true;
+  mainMessage:string;
+  bDesktop = false;
 
   ngOnInit() {
-    this.start();
-    requestAnimationFrame(this.render.bind(this));
+    var ua = navigator.userAgent;
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)){
+      this.mainMessage="This high performance application needs to be launched on desktop machines";
+    }
+
+    else{
+      this.bDesktop = true;
+      this.start();
+      requestAnimationFrame(this.render.bind(this));
+      this.mainMessage="Use W,S,A,D,Q and E to translate camera.Use I,J,K,L,U and O to rotate camera";
+      
+    }
+    
   }
   onResize(event) {
-    canvas.width = (document.body.clientWidth);
+ 
     this.gl = this.initWebGL(canvas);
+    canvas.width = document.body.clientWidth;
+    canvas.height = 0.9*document.body.clientHeight;// - menu.offsetHeight;
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
     this.camera.init();
@@ -141,9 +158,12 @@ export class RendererComponent implements OnInit {
   }
   start() {
     canvas = document.getElementById("glcanvas");
+    menu = document.getElementById("bottomPanel");
     canvas.tabIndex = 0;
-    canvas.width = (document.body.clientWidth);
     this.gl = this.initWebGL(canvas);      // Initialize the GL context
+    
+    canvas.width = document.body.clientWidth;
+    canvas.height = 0.9*document.body.clientHeight;// - menu.offsetHeight;
 
     this.PlanetAndDists = []
     let tvec = vec3.create();
@@ -687,6 +707,8 @@ export class RendererComponent implements OnInit {
     this.gl.getExtension('EXT_color_buffer_float');
     this.rttFrameBuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFrameBuffer);
+    this.gl.enable(this.gl.DEPTH_TEST); 
+    this.gl.depthFunc(this.gl.LEQUAL);
     this.rttFrameBuffer.width = canvas.width;
     this.rttFrameBuffer.height = canvas.height;
 
@@ -812,7 +834,12 @@ export class RendererComponent implements OnInit {
     //////////////////////
     this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0])
 
+    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    this.gl.disable(this.gl.DEPTH_TEST);
+    
   }
   initBuffers(gl) {
     // Create a buffer for the square's positions.
@@ -879,9 +906,6 @@ export class RendererComponent implements OnInit {
     this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.disable(gl.BLEND);
-    gl.clearDepth(1.0);                 // Clear everything
-    gl.depthFunc(gl.LESS);            // Near things obscure far things
     gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 
     //camera handling
@@ -901,19 +925,9 @@ export class RendererComponent implements OnInit {
     gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Sun.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
-    this.drawDeffered(gl, buffers);
-
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
-    gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);
+  
     this.Earth.animate(deltaTime, buffers);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
@@ -1062,7 +1076,7 @@ export class RendererComponent implements OnInit {
 
   cloudsMode() {
     this.particlesStop = !this.particlesStop;
-    if (this.particlesStop) {
+    if (!this.particlesStop) {
       this.cloudsButtonName = "wind particles"
     }
     else {
@@ -1093,7 +1107,7 @@ export class RendererComponent implements OnInit {
   }
   renderCloudsMode() {
     this.renderClouds = !this.renderClouds;
-    if (this.renderTopology) {
+    if (this.renderClouds) {
       this.renderCloudsButtonName = "clouds:on";
     }
     else {

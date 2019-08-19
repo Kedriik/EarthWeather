@@ -1,4 +1,4 @@
- import { mat4 } from 'gl-matrix';
+import { mat4 } from 'gl-matrix';
 import { vec4 } from 'gl-matrix';
 import { vec3 } from 'gl-matrix';
 import { quat } from 'gl-matrix';
@@ -35,11 +35,9 @@ export class Planet implements IRenderObject {
   static AtmosphereSphereProgramInfo: any;
   static CloudsSphereBuffers: any;
   static CloudsSphereProgramInfo: any;
-  static PlaneBuffers: any;
-  static PlaneProgramInfo: any;
   static OceanProgram: any;
   static OceanProgramInfo: any;
-  static camera:Camera;
+  static camera: Camera;
 
   DefferedCloudsProgram: any;
   DefferedCloudsProgramInfo: any;
@@ -51,8 +49,8 @@ export class Planet implements IRenderObject {
   ColorTexture: any;
   CloudsImage: any;
   CloudsTexture: any;
-  BlueSpec:number = 0;
-  Emissive:number = 0;
+  BlueSpec: number = 0;
+  Emissive: number = 0;
   RingsImage: any;
   RingsTexture: any;
   RingsBuffer: any;
@@ -65,11 +63,11 @@ export class Planet implements IRenderObject {
 
   AtmosphereRayleigh: vec4;
   AtmosphereMie: vec4;
-  Mode:number = 1;
+  Mode: number = 1;
   hasClouds: boolean;
   hasOceans: boolean;
   hasAtmosphere: boolean;
-  RaymarchSteps:number = 8;
+  RaymarchSteps: number = 8;
   //Size is 1 per 1000 real km
   Size: number;
 
@@ -81,10 +79,10 @@ export class Planet implements IRenderObject {
   Speed: vec3;
   RotationSpeed: vec3; //[0] - forward vector, [1] = up, [2] = right
 
-  RotationOrigin:vec3;
-  DistanceToOrigin:number;
-  AngularSpeed:number = 1; //1 earth orbit per 1h
-  
+  RotationOrigin: vec3;
+  DistanceToOrigin: number;
+  AngularSpeed: number = 1; //1 earth orbit per 1h
+
   init(gl) {
     Planet.PlanetProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/PlanetRaymarcher.shader"));
     Planet.PlanetProgramInfo = {
@@ -109,8 +107,7 @@ export class Planet implements IRenderObject {
         raymarchSteps: gl.getUniformLocation(Planet.PlanetProgram, 'uRaymarchSteps')
       },
     };
-    Planet.AtmosphereProgram = GLHelpers.initShaderProgram(
-      gl, Planet.vsSource, require("raw-loader!./Shaders/AtmosphereFragment.shader"));
+    Planet.AtmosphereProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/AtmosphereFragment.shader"));
     Planet.AtmosphereProgramInfo = {
       program: Planet.AtmosphereProgram,
       attribLocations: {
@@ -131,31 +128,7 @@ export class Planet implements IRenderObject {
 
       },
     };
-    if (this.PlanetName == "Mars") {
-      this.DefferedCloudsProgram = GLHelpers.initShaderProgram(
-        gl, Planet.vsSource, require("raw-loader!./Shaders/CloudsFragment.shader"));
 
-      this.DefferedCloudsProgramInfo = {
-        program: this.DefferedCloudsProgram,
-        attribLocations: {
-          vertexPosition: gl.getAttribLocation(this.DefferedCloudsProgram, 'aVertexPosition'),
-        },
-        uniformLocations: {
-          cloudsLayer: gl.getUniformLocation(this.DefferedCloudsProgram, 'CloudsLayer'),
-          positionSampler: gl.getUniformLocation(this.DefferedCloudsProgram, 'Position'),
-          lightPower: gl.getUniformLocation(this.DefferedCloudsProgram, 'uLightPower'),
-          lightPosition: gl.getUniformLocation(this.DefferedCloudsProgram, 'uLightPosition'),
-          modelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uModelMatrix'),
-          lightColor: gl.getUniformLocation(this.DefferedCloudsProgram, 'uLightColor'),
-          screenSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uScreenSize'),
-          planetPosition: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetPosition'),
-          inverseModelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uInverseModelMatrix'),
-          cameraPosition: gl.getUniformLocation(this.DefferedCloudsProgram, 'uCameraPosition'),
-          viewMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uViewMatrix'),
-          planetSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetSize')
-        },
-      };
-    }
     else if (this.PlanetName == "Earth") {
       this.DefferedCloudsProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/EarthCloudsFragment.shader"));
       this.DefferedCloudsProgramInfo = {
@@ -200,8 +173,7 @@ export class Planet implements IRenderObject {
     Planet.CloudsSphereBuffers = GLHelpers.generateSphere(gl, 100, 100, 1);
 
     Planet.AtmosphereSphereProgramInfo = GLHelpers.createGenericShapeProgram(gl, require("raw-loader!./Shaders/GenericVertex.shader"), require("raw-loader!./Shaders/AtmosphereSphere.shader"));
-    Planet.CloudsSphereBuffers = GLHelpers.generateSphere(gl, 100, 100, 1);
-    Planet.CloudsSphereProgramInfo = GLHelpers.createGenericShapeProgram(gl, require("raw-loader!./Shaders/GenericVertex.shader"), require("raw-loader!./Shaders/CloudsSphere.shader"));
+
     Planet.PlaneBuffers = GLHelpers.generatePlane(gl, 100, 100);
 
     this.Size = 10.0;
@@ -228,7 +200,7 @@ export class Planet implements IRenderObject {
       this.BlueSpec = 1.0;
       this.DistanceToOrigin = 149600;
       this.AngularSpeed = 1.0;
-      
+
     }
 
     this.TopologyImage.onload = () => {
@@ -276,18 +248,6 @@ export class Planet implements IRenderObject {
 
     }
 
-    if (this.PlanetName == "Saturn") {
-      this.RingsImage.onload = () => {
-        this.RingsTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.RingsTexture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.RingsImage.width,
-          this.RingsImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.RingsImage)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.generateMipmap(gl.TEXTURE_2D);
-      }
-
-    }
     this.ModelMatrix = mat4.create();
     this.RotationSpeed = vec3.create();
     // Now move the drawing position a bit to where we want to
@@ -304,27 +264,21 @@ export class Planet implements IRenderObject {
     this.hasAtmosphere = false;
     this.hasClouds = false;
     this.hasOceans = false;
-   // this.DistanceToOrigin/= 1000;
-    
+    // this.DistanceToOrigin/= 1000;
+
     this.Size;
   }
   draw(gl, ViewMatrix, ProjectionMatrix, buffers) {
     {
-      const numComponents = 3;  // pull out 2 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
       gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
 
       gl.vertexAttribPointer(
         Planet.PlanetProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0);
       gl.enableVertexAttribArray(
         Planet.PlanetProgramInfo.attribLocations.vertexPosition);
     }
@@ -403,13 +357,7 @@ export class Planet implements IRenderObject {
       buffers.canvas.clientHeight
     )
     {
-      const vertexCount = 6;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
-    if (this.PlanetName == "Saturn") {
-      this.drawRings(gl, ViewMatrix, ProjectionMatrix, this.RingsBuffer);
+      gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     }
   }
   drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers,cloudsTexture = this.CloudsTexture) {
@@ -578,13 +526,13 @@ export class Planet implements IRenderObject {
       gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
   }
-  animate(deltaTime,buffers) {
+  animate(deltaTime, buffers) {
     // //scaling FIRST, and THEN the rotation, and THEN the translation
     this.AtmosphereModelMatrix = mat4.create();
   }
   drawDefferedAtmosphere(gl, buffers, ViewMatrix, ProjectionMatrix, DefferedShaderProgramInfo, LightPosition,
     LightColor, LightPower, camera, PositionTexture) {
-      
+
     let AtmosphereModelMatrix: mat4;
     AtmosphereModelMatrix = mat4.create();
     let r = this.Size + 1.0;
@@ -984,10 +932,10 @@ export class Planet implements IRenderObject {
       indices: indexBuffer,
     };
   }
-  initMouseControl(inputTracker:InputTracker){
-    inputTracker.mouseMoving.subscribe(mov=>this.rotateByMouse(mov));
+  initMouseControl(inputTracker: InputTracker) {
+    inputTracker.mouseMoving.subscribe(mov => this.rotateByMouse(mov));
   }
-  rotateByMouse(mov){
+  rotateByMouse(mov) {
     // let rotMatrixX = mat4.create();
     // mat4.rotateY(rotMatrixX,rotMatrixX,0.01*mov[0]);
     // let rotMatrixY = mat4.create();
@@ -998,7 +946,7 @@ export class Planet implements IRenderObject {
     let mat2 = mat4.create();
     let rotV = vec3.create();
     vec3.cross(rotV, Planet.camera.Up, Planet.camera.Forward);
-    mat4.rotate(this.ModelMatrix,this.ModelMatrix,0.01*mov[0],Planet.camera.Up);
-    mat4.rotate(this.ModelMatrix,this.ModelMatrix,-0.01*mov[1],rotV);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, 0.01 * mov[0], Planet.camera.Up);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -0.01 * mov[1], rotV);
   }
 }

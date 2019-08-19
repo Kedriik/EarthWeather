@@ -5,7 +5,14 @@ canvas{
     background-color: black;
     margin:0;
 }
-
+renderer{
+    height: 80%;
+    width: 100%;
+    margin: 0;
+}
+bottomPanel{
+    height: 50px;
+}
 button{
     background-color: black;
     color:green;
