@@ -1,17 +1,21 @@
-<div >
+<div>
+    <div id = "bottomPanel"  class="bottomPanel">
+        <div *ngIf="bDesktop" class="menu">
+      
+          <button class="button" (click)="atmosphereMode()" mat-button>{{atmosphereButtonName}}</button>
+          <button class="button" (click)="renderCloudsMode()" mat-button>{{renderCloudsButtonName}}</button>
+          <button class="button" (click)="cloudsMode()" mat-button>{{cloudsButtonName}}</button>
+        </div>
+      
+      </div>
+      
+    <div class="help">
+      <p>
+        <font color="green"> <pre>{{mainMessage}}</pre> </font>
+      </p>
+      </div>
   <canvas  class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)="pauseRendering()"
     id="glcanvas" align-c>
     Your browser doesn't appear to support the HTML5
   </canvas>
-</div>
-<div id = "bottomPanel"  class="bottomPanel">
-  <div *ngIf="bDesktop" class="menu">
-
-    <button class="button" (click)="atmosphereMode()" mat-button>{{atmosphereButtonName}}</button>
-    <button class="button" (click)="renderCloudsMode()" mat-button>{{renderCloudsButtonName}}</button>
-    <button class="button" (click)="cloudsMode()" mat-button>{{cloudsButtonName}}</button>
-  </div>
-  <div class="help">
-    <font color="green"> {{mainMessage}} </font>
-  </div>
 </div>

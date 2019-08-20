@@ -38,7 +38,8 @@ export class Planet implements IRenderObject {
   static OceanProgram: any;
   static OceanProgramInfo: any;
   static camera: Camera;
-
+  static PlaneBuffers:any;
+  static MyCurrentRenderer:any;
   DefferedCloudsProgram: any;
   DefferedCloudsProgramInfo: any;
   ColorPath: any;
@@ -83,6 +84,7 @@ export class Planet implements IRenderObject {
   DistanceToOrigin: number;
   AngularSpeed: number = 1; //1 earth orbit per 1h
 
+  
   init(gl) {
     Planet.PlanetProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/PlanetRaymarcher.shader"));
     Planet.PlanetProgramInfo = {
@@ -129,7 +131,7 @@ export class Planet implements IRenderObject {
       },
     };
 
-    else if (this.PlanetName == "Earth") {
+    
       this.DefferedCloudsProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/EarthCloudsFragment.shader"));
       this.DefferedCloudsProgramInfo = {
         program: this.DefferedCloudsProgram,
@@ -150,7 +152,7 @@ export class Planet implements IRenderObject {
           screenSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uScreenSize')
         },
       };
-    }
+    
     Planet.OceanProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/OceanRaymarcher.shader"));
     Planet.OceanProgramInfo = {
       program: Planet.OceanProgram,
@@ -211,6 +213,7 @@ export class Planet implements IRenderObject {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.generateMipmap(gl.TEXTURE_2D);
+      Planet.MyCurrentRenderer.bStartCouting +=1;
     }
 
     this.ColorImage.onload = () => {
@@ -221,6 +224,7 @@ export class Planet implements IRenderObject {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.generateMipmap(gl.TEXTURE_2D);
+      Planet.MyCurrentRenderer.bStartCouting +=1;
     }
     if (this.PlanetName == "Earth") {
       this.CloudsImage.onload = () => {
@@ -231,6 +235,7 @@ export class Planet implements IRenderObject {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.generateMipmap(gl.TEXTURE_2D);
+        Planet.MyCurrentRenderer.bStartCouting +=1;
       }
       let r = 10;
       this.AtmosphereRayleigh[0] = 1.5 / r;

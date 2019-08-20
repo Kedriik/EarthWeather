@@ -10,7 +10,7 @@ import { Star } from './Star'
 import { GLHelpers } from './glhelpers'
 
 let canvas: any;
-let menu:any;
+let menu: any;
 declare var require: any
 @Component({
   selector: 'app-renderer',
@@ -84,7 +84,7 @@ export class RendererComponent implements OnInit {
   ParticlesSpeedsImage: any;
   ParticlesSpeeds: any;
   particlesSize: number = 200;
-  currentParticlesSize:number = 10;
+  currentParticlesSize: number = 10;
   ParticleFrontBack: boolean = false;
   DebugOutput: any;
   ParticleTextureWidth = 4096;//1300;
@@ -117,30 +117,57 @@ export class RendererComponent implements OnInit {
   renderAtmosphere: boolean = true;
   renderTopology: boolean = true;
   renderClouds: boolean = true;
-  mainMessage:string;
+  mainMessage: string;
   bDesktop = false;
+  bChecking = true;
+  bRender = true;
+  fpsCounter: number = 0;
+  countingTime: number = 0;
+  bStartCouting = 0;
+  delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async printDelayed() {
+    while (true) {
+      this.mainMessage += ".";
+      if (!this.bChecking) {
+        break;
+      }
+      await this.delay(1000);
+    }
+
+    this.mainMessage += "\n";
+  }
 
   ngOnInit() {
     var ua = navigator.userAgent;
-
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)){
-      this.mainMessage="This high performance application needs to be launched on desktop machines";
+    this.mainMessage = "Detecting hardware"
+    this.printDelayed();
+    //await this.delay(1000);
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
+      this.mainMessage += "Please use desktop high performance desktop machine. \n";
+      this.bChecking = false;
+      this.bDesktop = false;
+      this.bRender = false;
     }
 
-    else{
+    else {
       this.bDesktop = true;
+      this.mainMessage += "Detected\n";
       this.start();
       requestAnimationFrame(this.render.bind(this));
-      this.mainMessage="Use W,S,A,D,Q and E to translate camera.Use I,J,K,L,U and O to rotate camera";
-      
+
+
     }
-    
+
+
   }
   onResize(event) {
- 
+
     this.gl = this.initWebGL(canvas);
     canvas.width = document.body.clientWidth;
-    canvas.height = 0.9*document.body.clientHeight;// - menu.offsetHeight;
+    canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
     this.camera.init();
@@ -157,13 +184,14 @@ export class RendererComponent implements OnInit {
       zFar);
   }
   start() {
+    this.mainMessage += "Loading textures.";
     canvas = document.getElementById("glcanvas");
     menu = document.getElementById("bottomPanel");
     canvas.tabIndex = 0;
     this.gl = this.initWebGL(canvas);      // Initialize the GL context
-    
+
     canvas.width = document.body.clientWidth;
-    canvas.height = 0.9*document.body.clientHeight;// - menu.offsetHeight;
+    canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
 
     this.PlanetAndDists = []
     let tvec = vec3.create();
@@ -175,6 +203,7 @@ export class RendererComponent implements OnInit {
     this.planets.push(this.Sun);
 
     this.Earth = new Planet;
+    Planet.MyCurrentRenderer = this;
     this.Earth.PlanetName = "Earth";
     this.Earth.init(this.gl);
     this.Earth.hasOceans = false;
@@ -707,7 +736,7 @@ export class RendererComponent implements OnInit {
     this.gl.getExtension('EXT_color_buffer_float');
     this.rttFrameBuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFrameBuffer);
-    this.gl.enable(this.gl.DEPTH_TEST); 
+    this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.rttFrameBuffer.width = canvas.width;
     this.rttFrameBuffer.height = canvas.height;
@@ -839,7 +868,7 @@ export class RendererComponent implements OnInit {
     this.gl.enable(this.gl.BLEND);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
     this.gl.disable(this.gl.DEPTH_TEST);
-    
+
   }
   initBuffers(gl) {
     // Create a buffer for the square's positions.
@@ -927,7 +956,7 @@ export class RendererComponent implements OnInit {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Sun.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
-  
+
     this.Earth.animate(deltaTime, buffers);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
@@ -936,7 +965,7 @@ export class RendererComponent implements OnInit {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT)
-    
+
     gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -985,9 +1014,9 @@ export class RendererComponent implements OnInit {
       0);
     gl.enableVertexAttribArray(
       this.DefferedShaderProgramInfo.attribLocations.vertexPosition);
-    
+
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    
+
     gl.useProgram(this.DefferedShaderProgramInfo.program);
 
     gl.uniform2f(
@@ -1046,10 +1075,35 @@ export class RendererComponent implements OnInit {
     gl.disable(gl.BLEND);
   }
 
+
   /// ********* TODO: IMPROVE*********
   render(now) {
     now *= 0.001;  // convert to seconds
     const deltaTime = now - this.then;
+    if (this.bStartCouting == 3) {
+      this.mainMessage += "\nCounting fps for 10seconds";
+      this.bStartCouting+=1;
+    }
+    if (this.bStartCouting > 3) {
+
+      this.countingTime += deltaTime;
+      this.fpsCounter += 1;
+      if (this.countingTime > 10) {
+        if (this.fpsCounter / this.countingTime > 5) {
+          this.bChecking = false;
+          this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime);
+          this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.Use I,J,K,L,U and O to rotate camera";
+          this.bStartCouting = 0;
+        }
+        else {
+          this.bChecking = false;
+          this.bRender = false;
+
+          this.mainMessage += "\nYour hardware did not hold 5fps but:" + this.fpsCounter / this.countingTime + ". Rendering aborted";
+          this.bRender = false;
+        }
+      }
+    }
     this.then = now;
     let pressedKeys = this.inputTracker.getCurrentlyPressedKeys()
     this.camera.updateCameraKeyboard(deltaTime, pressedKeys);
@@ -1060,7 +1114,10 @@ export class RendererComponent implements OnInit {
     origin[0] = 0
     this.animate(deltaTime);
     this.drawScene(this.gl, this.CommonBuffers, deltaTime);
-    requestAnimationFrame(this.render.bind(this));
+    if (this.bRender) {
+      requestAnimationFrame(this.render.bind(this));
+    }
+
   }
 
   getInputTracker() {
@@ -1094,7 +1151,7 @@ export class RendererComponent implements OnInit {
     }
     this.bPauseRendering = false;
   }
-  
+
   topologyMode() {
     this.renderTopology = !this.renderTopology;
     if (this.renderTopology) {
