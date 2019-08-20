@@ -38,8 +38,8 @@ export class Planet implements IRenderObject {
   static OceanProgram: any;
   static OceanProgramInfo: any;
   static camera: Camera;
-  static PlaneBuffers:any;
-  static MyCurrentRenderer:any;
+  static PlaneBuffers: any;
+  static MyCurrentRenderer: any;
   DefferedCloudsProgram: any;
   DefferedCloudsProgramInfo: any;
   ColorPath: any;
@@ -84,7 +84,7 @@ export class Planet implements IRenderObject {
   DistanceToOrigin: number;
   AngularSpeed: number = 1; //1 earth orbit per 1h
 
-  
+
   init(gl) {
     Planet.PlanetProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/PlanetRaymarcher.shader"));
     Planet.PlanetProgramInfo = {
@@ -131,48 +131,31 @@ export class Planet implements IRenderObject {
       },
     };
 
-    
-      this.DefferedCloudsProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/EarthCloudsFragment.shader"));
-      this.DefferedCloudsProgramInfo = {
-        program: this.DefferedCloudsProgram,
-        attribLocations: {
-          vertexPosition: gl.getAttribLocation(this.DefferedCloudsProgram, 'aVertexPosition'),
-          vertexColor: gl.getAttribLocation(this.DefferedCloudsProgram, 'aVertexColor'),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uProjectionMatrix'),
-          topologyMap: gl.getUniformLocation(this.DefferedCloudsProgram, 'TopologyMap'),
-          colorMap: gl.getUniformLocation(this.DefferedCloudsProgram, 'ColorMap'),
-          modelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uModelMatrix'),
-          planetPosition: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetPosition'),
-          planetSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetSize'),
-          viewMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uViewMatrix'),
-          inverseViewMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uInverseViewMatrix'),
-          inverseModelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uInverseModelMatrix'),
-          screenSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uScreenSize')
-        },
-      };
-    
-    Planet.OceanProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/OceanRaymarcher.shader"));
-    Planet.OceanProgramInfo = {
-      program: Planet.OceanProgram,
+
+    this.DefferedCloudsProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/EarthCloudsFragment.shader"));
+    this.DefferedCloudsProgramInfo = {
+      program: this.DefferedCloudsProgram,
       attribLocations: {
-        vertexPosition: gl.getAttribLocation(Planet.OceanProgram, 'aVertexPosition'),
-        vertexColor: gl.getAttribLocation(Planet.OceanProgram, 'aVertexColor'),
+        vertexPosition: gl.getAttribLocation(this.DefferedCloudsProgram, 'aVertexPosition'),
+        vertexColor: gl.getAttribLocation(this.DefferedCloudsProgram, 'aVertexColor'),
       },
       uniformLocations: {
-        projectionMatrix: gl.getUniformLocation(Planet.OceanProgram, 'uProjectionMatrix'),
-        modelMatrix: gl.getUniformLocation(Planet.OceanProgram, 'uModelMatrix'),
-        planetPosition: gl.getUniformLocation(Planet.OceanProgram, 'uPlanetPosition'),
-        viewMatrix: gl.getUniformLocation(Planet.OceanProgram, 'uViewMatrix'),
-        inverseViewMatrix: gl.getUniformLocation(Planet.OceanProgram, 'uInverseViewMatrix'),
-        inverseModelMatrix: gl.getUniformLocation(Planet.OceanProgram, 'uInverseModelMatrix'),
-        screenSize: gl.getUniformLocation(Planet.OceanProgram, 'uScreenSize'),
-        planetSize: gl.getUniformLocation(Planet.OceanProgram, 'uPlanetSize'),
+        projectionMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uProjectionMatrix'),
+        topologyMap: gl.getUniformLocation(this.DefferedCloudsProgram, 'TopologyMap'),
+        colorMap: gl.getUniformLocation(this.DefferedCloudsProgram, 'ColorMap'),
+        modelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uModelMatrix'),
+        planetPosition: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetPosition'),
+        planetSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uPlanetSize'),
+        viewMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uViewMatrix'),
+        inverseViewMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uInverseViewMatrix'),
+        inverseModelMatrix: gl.getUniformLocation(this.DefferedCloudsProgram, 'uInverseModelMatrix'),
+        screenSize: gl.getUniformLocation(this.DefferedCloudsProgram, 'uScreenSize')
       },
     };
-    Planet.AtmosphereSphereBuffers = GLHelpers.generateSphere(gl, 100, 100, 1);
-    Planet.CloudsSphereBuffers = GLHelpers.generateSphere(gl, 100, 100, 1);
+
+
+    Planet.AtmosphereSphereBuffers = GLHelpers.generateSphere(gl, 10, 10, 1);
+    Planet.CloudsSphereBuffers = Planet.AtmosphereSphereBuffers;//GLHelpers.generateSphere(gl, 100, 100, 1);
 
     Planet.AtmosphereSphereProgramInfo = GLHelpers.createGenericShapeProgram(gl, require("raw-loader!./Shaders/GenericVertex.shader"), require("raw-loader!./Shaders/AtmosphereSphere.shader"));
 
@@ -213,7 +196,7 @@ export class Planet implements IRenderObject {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.generateMipmap(gl.TEXTURE_2D);
-      Planet.MyCurrentRenderer.bStartCouting +=1;
+      Planet.MyCurrentRenderer.bStartCouting += 1;
     }
 
     this.ColorImage.onload = () => {
@@ -224,34 +207,32 @@ export class Planet implements IRenderObject {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       gl.generateMipmap(gl.TEXTURE_2D);
-      Planet.MyCurrentRenderer.bStartCouting +=1;
+      Planet.MyCurrentRenderer.bStartCouting += 1;
     }
-    if (this.PlanetName == "Earth") {
-      this.CloudsImage.onload = () => {
-        this.CloudsTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.CloudsTexture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.CloudsImage.width,
-          this.CloudsImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.CloudsImage)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        Planet.MyCurrentRenderer.bStartCouting +=1;
-      }
-      let r = 10;
-      this.AtmosphereRayleigh[0] = 1.5 / r;
-      this.AtmosphereRayleigh[1] = 4.0 / r;
-      this.AtmosphereRayleigh[2] = 8.0 / r;
-      this.AtmosphereRayleigh[3] = 0.2
 
-      let mie = 5.0 / 10000000
-      this.AtmosphereMie[0] = mie;
-      this.AtmosphereMie[1] = mie;
-      this.AtmosphereMie[2] = mie;
-      this.AtmosphereMie[3] = 0.1;
-
-      this.Size = 6.5;
-
+    this.CloudsImage.onload = () => {
+      this.CloudsTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, this.CloudsTexture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.CloudsImage.width,
+        this.CloudsImage.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.CloudsImage)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      Planet.MyCurrentRenderer.bStartCouting += 1;
     }
+    let r = 10;
+    this.AtmosphereRayleigh[0] = 1.5 / r;
+    this.AtmosphereRayleigh[1] = 4.0 / r;
+    this.AtmosphereRayleigh[2] = 8.0 / r;
+    this.AtmosphereRayleigh[3] = 0.2
+
+    let mie = 5.0 / 10000000
+    this.AtmosphereMie[0] = mie;
+    this.AtmosphereMie[1] = mie;
+    this.AtmosphereMie[2] = mie;
+    this.AtmosphereMie[3] = 0.1;
+
+    this.Size = 6.5;
 
     this.ModelMatrix = mat4.create();
     this.RotationSpeed = vec3.create();
@@ -365,8 +346,9 @@ export class Planet implements IRenderObject {
       gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     }
   }
-  drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers,cloudsTexture = this.CloudsTexture) {
+  drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers, cloudsTexture = this.CloudsTexture) {
     {
+      gl.useProgram(this.DefferedCloudsProgramInfo.program);
       const numComponents = 3;  // pull out 2 values per iteration
       const type = gl.FLOAT;    // the data in the buffer is 32bit floats
       const normalize = false;  // don't normalize
@@ -389,12 +371,6 @@ export class Planet implements IRenderObject {
     // Tell WebGL which indices to use to index the vertices
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     // Tell WebGL to use our program when drawing
-
-    gl.useProgram(this.DefferedCloudsProgramInfo.program);
-    gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, this.TopologyTexture);
-    gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.topologyMap, 6);
-
     gl.activeTexture(gl.TEXTURE7);
     gl.bindTexture(gl.TEXTURE_2D, cloudsTexture);
     gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.colorMap, 7);
@@ -551,21 +527,15 @@ export class Planet implements IRenderObject {
     gl.blendFunc(gl.ONE, gl.ONE);
     gl.disable(gl.DEPTH_TEST);
     {
-      const numComponents = 3;  // pull out 2 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
       gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
 
       gl.vertexAttribPointer(
         DefferedShaderProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0);
       gl.enableVertexAttribArray(
         DefferedShaderProgramInfo.attribLocations.vertexPosition);
     }
@@ -639,195 +609,12 @@ export class Planet implements IRenderObject {
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, Planet.AtmosphereLayerTexture);
     gl.uniform1i(Planet.AtmosphereProgramInfo.uniformLocations.atmosphereLayer, 5);
-    {
-      const vertexCount = 6;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
+
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+    
     gl.disable(gl.BLEND);
   }
-  drawDefferedClouds(gl, buffers, ViewMatrix, ProjectionMatrix, DefferedShaderProgramInfo, LightPosition,
-    LightColor, LightPower, camera, PositionTexture) {
-    if (!this.hasClouds)
-      return;
-    let CloudsModelMatrix: mat4;
-    CloudsModelMatrix = mat4.create();
-    let CloudsModelOnlyScaled = mat4.create();
-    let r = this.Size + 0.2;
-    mat4.scale(CloudsModelMatrix, this.ModelMatrix, [r, r, r]);
-    mat4.scale(CloudsModelOnlyScaled, mat4.create(), [r, r, r])
-    GLHelpers.genericDraw(gl, Planet.CloudsSphereBuffers, Planet.CloudsSphereProgramInfo, CloudsModelMatrix, ViewMatrix, ProjectionMatrix);
-    gl.cullFace(gl.BACK);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.disable(gl.DEPTH_TEST);
 
-    {
-      const numComponents = 3;  // pull out 2 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-
-      gl.vertexAttribPointer(
-        DefferedShaderProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-      gl.enableVertexAttribArray(
-        DefferedShaderProgramInfo.attribLocations.vertexPosition);
-    }
-    // Tell WebGL which indices to use to index the vertices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(this.DefferedCloudsProgramInfo.program);
-
-    gl.uniform2f(
-      this.DefferedCloudsProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
-    )
-
-    gl.uniform3f(
-      this.DefferedCloudsProgramInfo.uniformLocations.lightPosition,
-      LightPosition[0],
-      LightPosition[1],
-      LightPosition[2]
-    );
-    gl.uniform3f(
-      this.DefferedCloudsProgramInfo.uniformLocations.planetPosition,
-      this.Position[0],
-      this.Position[1],
-      this.Position[2]
-    );
-    gl.uniform1f(
-      this.DefferedCloudsProgramInfo.uniformLocations.planetSize,
-      this.Size
-    )
-    gl.uniformMatrix4fv(
-      this.DefferedCloudsProgramInfo.uniformLocations.modelMatrix,
-      false,
-      this.AtmosphereModelMatrix);
-
-    gl.uniform3f(
-      this.DefferedCloudsProgramInfo.uniformLocations.lightColor,
-      LightColor[0],
-      LightColor[1],
-      LightColor[2]
-    )
-    gl.uniform1f(
-      this.DefferedCloudsProgramInfo.uniformLocations.lightPower,
-      LightPower
-    );
-
-    gl.uniform3f(
-      this.DefferedCloudsProgramInfo.uniformLocations.cameraPosition,
-      camera.Position[0],
-      camera.Position[1],
-      camera.Position[2]
-    );
-
-    let inverseModelMatrix = mat4.create();
-    mat4.invert(inverseModelMatrix, this.ModelMatrix);
-    gl.uniformMatrix4fv(
-      this.DefferedCloudsProgramInfo.uniformLocations.inverseModelMatrix,
-      false,
-      inverseModelMatrix
-    )
-
-    gl.uniformMatrix4fv(
-      this.DefferedCloudsProgramInfo.uniformLocations.viewMatrix,
-      false,
-      ViewMatrix);
-
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, PositionTexture);
-    gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.positionSampler, 2);
-
-    gl.activeTexture(gl.TEXTURE5);
-    gl.bindTexture(gl.TEXTURE_2D, Planet.CloudsLayerTexture);
-    gl.uniform1i(this.DefferedCloudsProgramInfo.uniformLocations.cloudsLayer, 5);
-    {
-      const vertexCount = 6;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
-    gl.disable(gl.BLEND);
-  }
-  drawRings(gl, ViewMatrix, ProjectionMatrix, buffers) {
-    gl.disable(gl.CULL_FACE);
-    const RingsModelMatrix = mat4.create();
-    mat4.translate(RingsModelMatrix, RingsModelMatrix, this.Position);
-    mat4.scale(RingsModelMatrix, RingsModelMatrix, [150, 150, 150])
-
-    {
-      const numComponents = 3;  // pull out 2 values per iteration
-      const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-      const normalize = false;  // don't normalize
-      const stride = 0;         // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0;         // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-
-      gl.vertexAttribPointer(
-        this.RingsProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
-      gl.enableVertexAttribArray(
-        this.RingsProgramInfo.attribLocations.vertexPosition);
-    }
-
-    // Tell WebGL which indices to use to index the vertices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    // Tell WebGL to use our program when drawing
-
-    gl.useProgram(this.RingsProgramInfo.program);
-
-    gl.useProgram(this.RingsProgramInfo.program);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.RingsTexture);
-    gl.uniform1i(this.RingsProgramInfo.color, 0);
-    // Set the shader uniforms
-    gl.uniformMatrix4fv(
-      this.RingsProgramInfo.uniformLocations.projectionMatrix,
-      false,
-      ProjectionMatrix);
-
-    gl.uniform3f(
-      this.RingsProgramInfo.uniformLocations.planetPosition,
-      this.Position[0],
-      this.Position[1],
-      this.Position[2]
-    )
-    gl.uniformMatrix4fv(
-      this.RingsProgramInfo.uniformLocations.modelMatrix,
-      false,
-      RingsModelMatrix);
-    gl.uniformMatrix4fv(
-      this.RingsProgramInfo.uniformLocations.viewMatrix,
-      false,
-      ViewMatrix);
-
-    {
-      const vertexCount = 6;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-    }
-    gl.enable(gl.CULL_FACE);
-
-  }
   rotate(angle, axis) {
     if (axis == "forward") {
       let rotateAroundVector = vec3.create();

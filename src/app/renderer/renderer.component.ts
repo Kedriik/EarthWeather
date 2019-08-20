@@ -1091,7 +1091,7 @@ export class RendererComponent implements OnInit {
       if (this.countingTime > 10) {
         if (this.fpsCounter / this.countingTime > 5) {
           this.bChecking = false;
-          this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime);
+          this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
           this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.Use I,J,K,L,U and O to rotate camera";
           this.bStartCouting = 0;
         }
@@ -1099,7 +1099,7 @@ export class RendererComponent implements OnInit {
           this.bChecking = false;
           this.bRender = false;
 
-          this.mainMessage += "\nYour hardware did not hold required FPS (" + this.fpsCounter / this.countingTime + ")."
+          this.mainMessage += "\nYour hardware did not hold required FPS (" + (this.fpsCounter / this.countingTime).toFixed(2); + ")."
           this.mainMessage += "\nThis application uses Raymarching to render detailed Earth topography.\nPlease use modern desktop machine.";
           this.mainMessage += "\nRendering aborted";
           this.bRender = false;
