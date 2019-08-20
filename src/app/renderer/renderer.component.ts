@@ -142,11 +142,11 @@ export class RendererComponent implements OnInit {
 
   ngOnInit() {
     var ua = navigator.userAgent;
-    this.mainMessage = "Detecting hardware"
+    this.mainMessage = "Detecting hardware."
     this.printDelayed();
     //await this.delay(1000);
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua)) {
-      this.mainMessage += "Please use desktop high performance desktop machine. \n";
+      this.mainMessage += "Mobile detected.\nThis application uses Raymarching to render detailed Earth topography.\nPlease use modern desktop machine.\n";
       this.bChecking = false;
       this.bDesktop = false;
       this.bRender = false;
@@ -154,7 +154,7 @@ export class RendererComponent implements OnInit {
 
     else {
       this.bDesktop = true;
-      this.mainMessage += "Detected\n";
+      this.mainMessage += "Desktop detected.\n";
       this.start();
       requestAnimationFrame(this.render.bind(this));
 
@@ -1081,7 +1081,7 @@ export class RendererComponent implements OnInit {
     now *= 0.001;  // convert to seconds
     const deltaTime = now - this.then;
     if (this.bStartCouting == 3) {
-      this.mainMessage += "\nCounting fps for 10seconds";
+      this.mainMessage += "\nTextures loaded.\nCounting fps for 10seconds";
       this.bStartCouting+=1;
     }
     if (this.bStartCouting > 3) {
@@ -1099,7 +1099,9 @@ export class RendererComponent implements OnInit {
           this.bChecking = false;
           this.bRender = false;
 
-          this.mainMessage += "\nYour hardware did not hold 5fps but:" + this.fpsCounter / this.countingTime + ". Rendering aborted";
+          this.mainMessage += "\nYour hardware did not hold required FPS (" + this.fpsCounter / this.countingTime + ")."
+          this.mainMessage += "\nThis application uses Raymarching to render detailed Earth topography.\nPlease use modern desktop machine.";
+          this.mainMessage += "\nRendering aborted";
           this.bRender = false;
         }
       }
