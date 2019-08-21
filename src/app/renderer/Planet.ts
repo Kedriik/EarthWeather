@@ -154,7 +154,7 @@ export class Planet implements IRenderObject {
     };
 
 
-    Planet.AtmosphereSphereBuffers = GLHelpers.generateSphere(gl, 10, 10, 1);
+    Planet.AtmosphereSphereBuffers = GLHelpers.generateSphere(gl, 50, 50, 1);
     Planet.CloudsSphereBuffers = Planet.AtmosphereSphereBuffers;//GLHelpers.generateSphere(gl, 100, 100, 1);
 
     Planet.AtmosphereSphereProgramInfo = GLHelpers.createGenericShapeProgram(gl, require("raw-loader!./Shaders/GenericVertex.shader"), require("raw-loader!./Shaders/AtmosphereSphere.shader"));

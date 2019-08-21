@@ -124,6 +124,7 @@ export class RendererComponent implements OnInit {
   fpsCounter: number = 0;
   countingTime: number = 0;
   bStartCouting = 0;
+  bFirstTry=true;
   delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -604,7 +605,7 @@ export class RendererComponent implements OnInit {
   }
   updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
 
-    if (this.particlesStop) {
+    if (this.particlesStop || !this.renderClouds) {
       return;
     }
 
@@ -1081,7 +1082,7 @@ export class RendererComponent implements OnInit {
     now *= 0.001;  // convert to seconds
     const deltaTime = now - this.then;
     if (this.bStartCouting == 3) {
-      this.mainMessage += "\nTextures loaded.\nCounting fps for 10seconds";
+      this.mainMessage += "Textures loaded.\nTesting performance.";
       this.bStartCouting+=1;
     }
     if (this.bStartCouting > 3) {
@@ -1089,17 +1090,27 @@ export class RendererComponent implements OnInit {
       this.countingTime += deltaTime;
       this.fpsCounter += 1;
       if (this.countingTime > 10) {
-        if (this.fpsCounter / this.countingTime > 5) {
+        if (this.fpsCounter / this.countingTime > 15) {
           this.bChecking = false;
           this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
-          this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.Use I,J,K,L,U and O to rotate camera";
+          this.mainMessage = "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
           this.bStartCouting = 0;
+        }
+        else if(this.bFirstTry){
+          this.mainMessage += "\nNot enough performance.Turning off features.";
+          this.countingTime = 0;
+          this.fpsCounter = 0;
+          this.bFirstTry = false;
+          this.renderCloudsMode();
+          this.atmosphereMode();
+          this.cloudsMode();
+          this.mainMessage += "\nTesting performance again.";
         }
         else {
           this.bChecking = false;
           this.bRender = false;
 
-          this.mainMessage += "\nYour hardware did not hold required FPS (" + (this.fpsCounter / this.countingTime).toFixed(2); + ")."
+          this.mainMessage += "\nYour hardware did not hold required FPS (" + (this.fpsCounter / this.countingTime).toFixed(2) + ")."
           this.mainMessage += "\nThis application uses Raymarching to render detailed Earth topography.\nPlease use modern desktop machine.";
           this.mainMessage += "\nRendering aborted";
           this.bRender = false;
