@@ -106,7 +106,8 @@ export class Planet implements IRenderObject {
         screenSize: gl.getUniformLocation(Planet.PlanetProgram, 'uScreenSize'),
         blueSpec: gl.getUniformLocation(Planet.PlanetProgram, 'uBlueSpec'),
         emissive: gl.getUniformLocation(Planet.PlanetProgram, 'uEmissive'),
-        raymarchSteps: gl.getUniformLocation(Planet.PlanetProgram, 'uRaymarchSteps')
+        raymarchSteps: gl.getUniformLocation(Planet.PlanetProgram, 'uRaymarchSteps'),
+        atmosphereLayer: gl.getUniformLocation(Planet.PlanetProgram, 'AtmosphereLayer')
       },
     };
     Planet.AtmosphereProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/AtmosphereFragment.shader"));
@@ -179,7 +180,7 @@ export class Planet implements IRenderObject {
     this.CloudsImage = new Image();
 
     if (this.PlanetName == "Earth") {
-      this.TopologyImage.src = require('./Textures/earth_topology_h1.png');
+      this.TopologyImage.src = require('./Textures/earth_topology_h1.jpg');
       this.ColorImage.src = require('./Textures/earth_color.jpg');
       this.CloudsImage.src = require('./Textures/clouds.jpg');
       this.BlueSpec = 1.0;
@@ -281,6 +282,11 @@ export class Planet implements IRenderObject {
     gl.activeTexture(gl.TEXTURE7);
     gl.bindTexture(gl.TEXTURE_2D, this.ColorTexture);
     gl.uniform1i(Planet.PlanetProgramInfo.uniformLocations.colorMap, 7);
+
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, Planet.AtmosphereLayerTexture);
+    gl.uniform1i(Planet.PlanetProgramInfo.uniformLocations.atmosphereLayer, 5);
+
     // Set the shader uniforms
 
     gl.uniformMatrix4fv(
@@ -345,6 +351,14 @@ export class Planet implements IRenderObject {
     {
       gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     }
+  }
+  markFootprint(gl, ViewMatrix, ProjectionMatrix,){
+    let AtmosphereModelMatrix: mat4;
+    AtmosphereModelMatrix = mat4.create();
+    let r = this.Size + 1.0;
+    mat4.scale(AtmosphereModelMatrix, this.ModelMatrix, [r, r, r]);
+    GLHelpers.genericDraw(gl, Planet.AtmosphereSphereBuffers, Planet.AtmosphereSphereProgramInfo, AtmosphereModelMatrix, ViewMatrix, ProjectionMatrix);
+    //
   }
   drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers, cloudsTexture = this.CloudsTexture) {
     {
@@ -514,12 +528,6 @@ export class Planet implements IRenderObject {
   drawDefferedAtmosphere(gl, buffers, ViewMatrix, ProjectionMatrix, DefferedShaderProgramInfo, LightPosition,
     LightColor, LightPower, camera, PositionTexture) {
 
-    let AtmosphereModelMatrix: mat4;
-    AtmosphereModelMatrix = mat4.create();
-    let r = this.Size + 1.0;
-    mat4.scale(AtmosphereModelMatrix, this.ModelMatrix, [r, r, r]);
-    GLHelpers.genericDraw(gl, Planet.AtmosphereSphereBuffers, Planet.AtmosphereSphereProgramInfo, AtmosphereModelMatrix, ViewMatrix, ProjectionMatrix);
-    //
     gl.cullFace(gl.BACK);
     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

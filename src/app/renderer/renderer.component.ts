@@ -951,6 +951,15 @@ export class RendererComponent implements OnInit {
     }
     this.ViewMatrix = this.camera.getViewMatrix();
 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.disable(gl.DEPTH_TEST);
+    this.Earth.markFootprint(gl,this.ViewMatrix,this.ProjectionMatrix);
+    
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
     gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -958,19 +967,14 @@ export class RendererComponent implements OnInit {
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Sun.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
 
+
+
     this.Earth.animate(deltaTime, buffers);
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
     this.drawDeffered(gl, buffers);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT)
 
-    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-    gl.disable(gl.DEPTH_TEST);
     if (this.renderAtmosphere) {
       this.Earth.drawDefferedAtmosphere(gl, buffers, this.ViewMatrix, this.ProjectionMatrix, this.DefferedShaderProgramInfo
         , this.LightPosition, this.LightColor, this.LightPower, this.camera, this.PositionTexture);
@@ -1094,6 +1098,7 @@ export class RendererComponent implements OnInit {
           this.bChecking = false;
           this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
           this.mainMessage = "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
+          //this.mainMessage += "\nLast weather maps update: "+require("raw-loader!../../assets/lastMapsUpdate.txt")
           this.bStartCouting = 0;
         }
         else if(this.bFirstTry){

@@ -10,6 +10,7 @@
   uniform vec2 uScreenSize;
   uniform sampler2D TopologyMap;
   uniform sampler2D ColorMap;
+  uniform sampler2D AtmosphereLayer;
   uniform float uBlueSpec;
   uniform float uEmissive;
   uniform int uRaymarchSteps;
@@ -91,6 +92,16 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     return vec3(0,0,0);
   }
 void main(void) {
+  vec2 uv=gl_FragCoord.xy;
+  uv.x/=uScreenSize.x;
+  uv.y/=uScreenSize.y;
+  
+  vec4 v4AtmosphereLayer= texture(AtmosphereLayer,uv);
+  if(v4AtmosphereLayer.w ==0.0){
+    discard;
+    return;
+  }
+
   OutputColor = vec4(0,0,0,1);
   vec4 cameraPos=vec4(0,0,0,1);
   vec3 ray;
