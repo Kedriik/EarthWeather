@@ -8,6 +8,7 @@ import { InputTracker } from './InputTracker'
 import { Planet } from './Planet'
 import { Star } from './Star'
 import { GLHelpers } from './glhelpers'
+import { HttpClient } from '@angular/common/http';
 
 let canvas: any;
 let menu: any;
@@ -37,7 +38,7 @@ export class RendererComponent implements OnInit {
       discard;
     }`
   ];
-  constructor() {
+  constructor(private http:HttpClient) {
 
   }
   ;
@@ -83,7 +84,7 @@ export class RendererComponent implements OnInit {
   ParticleComputeProgramInfo: any;
   ParticlesSpeedsImage: any;
   ParticlesSpeeds: any;
-  particlesSize: number = 200;
+  particlesSize: number = 400;
   currentParticlesSize: number = 10;
   ParticleFrontBack: boolean = false;
   DebugOutput: any;
@@ -125,6 +126,7 @@ export class RendererComponent implements OnInit {
   countingTime: number = 0;
   bStartCouting = 0;
   bFirstTry=true;
+  particleFramesOffset = 0;
   delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -142,6 +144,7 @@ export class RendererComponent implements OnInit {
   }
 
   ngOnInit() {
+    localStorage.clear();
     var ua = navigator.userAgent;
     this.mainMessage = "Detecting hardware."
     this.printDelayed();
@@ -604,8 +607,8 @@ export class RendererComponent implements OnInit {
     }
   }
   updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
-
-    if (this.particlesStop || !this.renderClouds) {
+    this.particleFramesOffset+=1;
+    if (this.particlesStop || !this.renderClouds || this.particleFramesOffset%3 != 0) {
       return;
     }
 
@@ -959,7 +962,7 @@ export class RendererComponent implements OnInit {
     gl.cullFace(gl.BACK);
     gl.disable(gl.DEPTH_TEST);
     this.Earth.markFootprint(gl,this.ViewMatrix,this.ProjectionMatrix);
-    
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
     gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -1097,8 +1100,12 @@ export class RendererComponent implements OnInit {
         if (this.fpsCounter / this.countingTime > 15) {
           this.bChecking = false;
           this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
-          this.mainMessage = "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
-          //this.mainMessage += "\nLast weather maps update: "+require("raw-loader!../../assets/lastMapsUpdate.txt")
+          this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
+          this.mainMessage += "\nLast weather maps update: ";
+          this.http.get('./assets/lastMapsUpdate.txt').subscribe(data => {
+            this.mainMessage+=data['date'];
+        })
+          //this.mainMessage +=   require("./assets/lastMapsUpdate.txt");
           this.bStartCouting = 0;
         }
         else if(this.bFirstTry){

@@ -39,40 +39,48 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 color=vec3(0,1,0);
   vec3 materialProp;
 
-  vec2 coordinates(vec3 dir){
-    float u = ((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f;
-    float v = (asin(dir.y) / PI) + 0.5f;
-    return vec2(1.0-u,v);
+vec2 coordinates(vec3 dir){
+    return vec2(1.0-(((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f),(asin(dir.y) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
   return new_min + ( ((value - original_min) / (original_max - original_min)) * (new_max - new_min) );
 }
-  vec2 _coords;
-  float planetary(in vec3 p){
-    vec4 spherePos=vec4(uPlanetPosition,1);
-    spherePos=spherePos;
-    p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    float A=0.028;
-    float f=10.0;
-    float R=uPlanetSize;
-    float dist;
-    vec3 dir=normalize(p-spherePos.xyz);
-    dir=(uModelMatrix*vec4(dir,0)).xyz;
-    vec4 seed=vec4(R*dir,1);
-    _coords = coordinates(normalize(dir));
-    vec4 topology;
-    if(_coords.x>0.99 || _coords.x<0.01 || _coords.y>0.99 || _coords.y<0.01){
-      topology = textureGrad(TopologyMap, _coords,vec2(0.0001),vec2(0.0001));
-    }
-    else{
-      topology = texture(TopologyMap, _coords);
-    }
-    float elevation = (remap((topology.y),0.0,1.0,0.0,0.05));
-    dist = distance(p,spherePos.xyz) - (R + elevation);
-    
-    return dist;
+vec2 _coords;
+float EPSILON;
+float A=0.028;
+float f;
+float R;
+float dist;
+vec4 spherePos;
+vec3 dir;
+vec4 seed;
+vec4 topology;
+float elevation;
+float planetary(in vec3 p){
+  spherePos=vec4(uPlanetPosition,1);
+  spherePos=spherePos;
+  p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
+   A=0.028;
+   f=10.0;
+   R=uPlanetSize;
+   dist;
+  dir=normalize(p-spherePos.xyz);
+  dir=(uModelMatrix*vec4(dir,0)).xyz;
+  seed=vec4(R*dir,1);
+  _coords = coordinates(normalize(dir));
+  
+  if(_coords.x>0.99 || _coords.x<0.01 || _coords.y>0.99 || _coords.y<0.01){
+    topology = textureGrad(TopologyMap, _coords,vec2(0.0001),vec2(0.0001));
   }
+  else{
+    topology = texture(TopologyMap, _coords);
+  }
+  elevation = (remap((topology.y),0.0,1.0,0.0,0.05));
+  dist = distance(p,spherePos.xyz) - (R + elevation);
+  
+  return dist;
+}
 
   
   float sceneSDF(in vec3 p)
@@ -80,7 +88,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     return planetary(p);
   }
   vec3 estimateNormal(vec3 p) {
-    float EPSILON=0.001;
+    EPSILON=0.001;
     return normalize(vec3(
     sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
     sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
@@ -111,15 +119,16 @@ void main(void) {
   float epsilon=0.02;
   float dist = 99999.0;
   int counter = uRaymarchSteps;
+  vec3 p;
   for(int i=0; i<counter; i++){
-    vec3 p = cameraPos.xyz + depth * ray;
+    p = cameraPos.xyz + depth * ray;
     dist = sceneSDF(p);
     depth = depth + dist;
     if(abs(dist)<=epsilon){
       break;
     }          
   }
-  vec3 p = cameraPos.xyz + depth * ray;
+  p = cameraPos.xyz + depth * ray;
   if(abs(dist) <= epsilon){
     if(_coords.x>0.95 || _coords.x<0.05 || _coords.y>0.95 || _coords.y<0.05){
       color = textureGrad(ColorMap, _coords,vec2(0.0001),vec2(0.0001)).xyz;

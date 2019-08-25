@@ -313,36 +313,51 @@ vec4 computeIncidentLight(vec3 _pos,int planetIndex, float fMieControl){
     float g = 0.9999;
     float phaseR = 3.0 / (16.0 * Pi) * (1.0 + mu * mu);
     float phaseM = 3.0 / (10.0 * Pi) * ((1.0 - g * g) * (1.0 + mu * mu)) / ((2.0 + g * g) * pow(1.0 + g * g - 2.0 * g * mu, 2.9));
+    vec3 samplePosition;
+    float height;
+    float hr;
+    float hm;
+    float t0Light, t1Light;
+    float opticalDepthLightR = 0.0, opticalDepthLightM = 0.0,opticalDepthLightClouds = 0.0;
+    int j;
+    float segmentLengthLight;
+    float heightLight;
+    vec3 samplePositionLight;
+    vec3 tau;
+    vec3 attenuation;
+    float  tCurrentLight;
     for (int i = 0; i < numSamples; ++i) 
     {
-        vec3 samplePosition = orig + (tCurrent + segmentLength * 0.5) * dir;
+        samplePosition = orig + (tCurrent + segmentLength * 0.5) * dir;
         
-        float height = length(samplePosition - uPlanetPosition) - earthRadius; //modelspace?
+        height = length(samplePosition - uPlanetPosition) - earthRadius; //modelspace?
         // compute optical depth for light
         
-        float hr = denseFunc(-height / Hr) * segmentLength;
-        float hm = denseFunc(-height / Hm) * segmentLength;
+        hr = denseFunc(-height / Hr) * segmentLength;
+        hm = denseFunc(-height / Hm) * segmentLength;
         
         opticalDepthR += hr;
         opticalDepthM += hm;
         // light optical depth
-        float t0Light, t1Light;
+        
         sunDirection=normalize(v3LightPos - samplePosition);
         raySphereIntersect(samplePosition, sunDirection,uPlanetPosition, atmosphereRadius, t0Light, t1Light);
-        float segmentLengthLight = t1Light / float(numSamplesLight), tCurrentLight = 0.0;
-        float opticalDepthLightR = 0.0, opticalDepthLightM = 0.0,opticalDepthLightClouds = 0.0;
-        int j;
-        float fLightControl=1.0;
+        segmentLengthLight = t1Light / float(numSamplesLight);
+        tCurrentLight = 0.0;
+        opticalDepthLightR = 0.0;
+        opticalDepthLightM = 0.0;
+        opticalDepthLightClouds = 0.0;
+        
         for (j = 0; j < numSamplesLight; ++j) 
         {
-            vec3 samplePositionLight = samplePosition + (tCurrentLight + segmentLengthLight * 0.5) * sunDirection;
-            float heightLight = length(samplePositionLight - uPlanetPosition) - earthRadius;
+            samplePositionLight = samplePosition + (tCurrentLight + segmentLengthLight * 0.5) * sunDirection;
+            heightLight = length(samplePositionLight - uPlanetPosition) - earthRadius;
             opticalDepthLightR +=  denseFunc(-heightLight / Hr) * segmentLengthLight;
             opticalDepthLightM +=  denseFunc(-heightLight / Hm) * segmentLengthLight;
             tCurrentLight += segmentLengthLight;
         }
-        vec3 tau = betaR * (opticalDepthR + opticalDepthLightR) + betaM * 1.1 * (opticalDepthM + opticalDepthLightM);
-        vec3 attenuation = vec3(exp(-tau.x), exp(-tau.y), exp(-tau.z));   
+        tau = betaR * (opticalDepthR + opticalDepthLightR) + betaM * 1.1 * (opticalDepthM + opticalDepthLightM);
+        attenuation = vec3(exp(-tau.x), exp(-tau.y), exp(-tau.z));   
         sumR += attenuation * hr;
         sumM += attenuation * hm;
         tCurrent += segmentLength;

@@ -369,19 +369,19 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 orange2 = vec3(1.0,102.0/255.0,0.0);
   vec3 white = vec3(1.0);
   vec3 _dir;
+  vec4 spherePos;
+  vec3 dir;
+  vec4 seed;
+  float dist;
+  float h;
+  vec2 coords;
   float sun(in vec3 p){
-    vec4 spherePos=vec4(0,0,0,1);
+    spherePos=vec4(0,0,0,1);
     spherePos=uViewMatrix*uModelMatrix*spherePos;
-
-    float R=uSize;
-
-    vec3 dir=normalize(p-spherePos.xyz);
+    dir=normalize(p-spherePos.xyz);
     dir=(uInverseModelMatrix*uInverseViewMatrix*vec4(dir,0)).xyz;
-    vec4 seed=vec4(R*dir,1);
-    float dist=distance(p,spherePos.xyz) - R;
-    float h=distance(p,spherePos.xyz); 
-    vec2 coords = coordinates(normalize(dir));
-    //color=texture(uColor, coords).xyz;;
+    seed=vec4(uSize*dir,1);
+    dist=distance(p,spherePos.xyz) - uSize;
 
     _dir = dir;
     return dist;
@@ -390,8 +390,9 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   {
     return sun(p);
   }
+  float EPSILON=0.001;
   vec3 estimateNormal(vec3 p) {
-    float EPSILON=0.001;
+    
     return normalize(vec3(
     sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
     sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
@@ -415,11 +416,12 @@ void main(void) {
   ray = rayDirection(45.0, uScreenSize, gl_FragCoord.xy);//normalize(ray);
   float depth = 0.0;
   float epsilon=0.00001;
+  vec3 p;
   for(int i=0; i<8; i++){
-    vec3 p = cameraPos.xyz + depth * ray;
+    p = cameraPos.xyz + depth * ray;
     depth = depth += sceneSDF(p);      
   }
-  vec3 p = cameraPos.xyz + depth * ray;
+  p = cameraPos.xyz + depth * ray;
   if(abs(sceneSDF(p)) < 0.1){
     vec3 y1Offset = vec3(111.0);
     vec3 oOffset = vec3(222.0);
