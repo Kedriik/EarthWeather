@@ -107,7 +107,6 @@ void main(void) {
   vec4 v4AtmosphereLayer= texture(AtmosphereLayer,uv);
   if(v4AtmosphereLayer.w ==0.0){
     discard;
-    return;
   }
 
   OutputColor = vec4(0,0,0,1);
