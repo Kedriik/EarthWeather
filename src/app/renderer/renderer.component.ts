@@ -127,6 +127,10 @@ export class RendererComponent implements OnInit {
   bStartCouting = 0;
   bFirstTry=true;
   particleFramesOffset = 0;
+  cloudsUrl:string;
+  dirsWindSigma995Url:string;
+  currentId:any;
+
   delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -144,7 +148,11 @@ export class RendererComponent implements OnInit {
   }
 
   ngOnInit() {
-    localStorage.clear();
+    this.currentId = Date.now();
+    this.cloudsUrl = 'assets/clouds.jpg?' + this.currentId;
+    this.dirsWindSigma995Url = 'assets/dirswindsigma995.jpg?' + this.currentId;
+    this.ParticlesVelocitiesImage = document.getElementById("windsSigma995");
+
     var ua = navigator.userAgent;
     this.mainMessage = "Detecting hardware."
     this.printDelayed();
@@ -209,6 +217,7 @@ export class RendererComponent implements OnInit {
     this.Earth = new Planet;
     Planet.MyCurrentRenderer = this;
     this.Earth.PlanetName = "Earth";
+    this.Earth.CloudsImage = document.getElementById("cloudsImg");
     this.Earth.init(this.gl);
     this.Earth.hasOceans = false;
     this.Earth.hasAtmosphere = true;
@@ -514,8 +523,8 @@ export class RendererComponent implements OnInit {
       },
     };
 
-    this.ParticlesVelocitiesImage = new Image();
-    this.ParticlesVelocitiesImage.src = require('./Textures/dirswindsigma995.jpg');
+    //this.ParticlesVelocitiesImage = new Image();
+    //this.ParticlesVelocitiesImage.src = require('./Textures/dirswindsigma995.jpg');
     this.ParticlesVelocitiesImage.onload = () => {
       this.ParticlesVelocities = this.gl.createTexture();
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesVelocities);
@@ -1102,7 +1111,7 @@ export class RendererComponent implements OnInit {
           this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
           this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
           this.mainMessage += "\nLast weather maps update: ";
-          this.http.get('./assets/lastMapsUpdate.txt').subscribe(data => {
+          this.http.get('./assets/lastMapsUpdate.txt?'+this.currentId).subscribe(data => {
             this.mainMessage+=data['date'];
         })
           //this.mainMessage +=   require("./assets/lastMapsUpdate.txt");

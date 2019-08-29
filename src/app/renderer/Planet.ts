@@ -177,12 +177,12 @@ export class Planet implements IRenderObject {
     this.RotationOrigin = vec3.create();
     this.TopologyImage = new Image();
     this.ColorImage = new Image();
-    this.CloudsImage = new Image();
+    //this.CloudsImage = new Image();
 
     if (this.PlanetName == "Earth") {
       this.TopologyImage.src = require('./Textures/earth_topology_h1.jpg');
       this.ColorImage.src = require('./Textures/earth_color.jpg');
-      this.CloudsImage.src = require('./Textures/clouds.jpg');
+      //this.CloudsImage.src = require('./Textures/clouds.jpg');
       this.BlueSpec = 1.0;
       this.DistanceToOrigin = 149600;
       this.AngularSpeed = 1.0;
