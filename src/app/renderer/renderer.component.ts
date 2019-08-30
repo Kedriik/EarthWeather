@@ -277,6 +277,11 @@ export class RendererComponent implements OnInit {
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
     this.camera.init();
+    this.camera.deltaTime = 0;
+    let dummy = []
+    dummy.push(0);
+    dummy.push(0);
+    this.camera.rotateByMouse(dummy);
     this.screenSize = vec2.create();
     this.screenSize[0] = canvas.clientWidth;
     this.screenSize[1] = canvas.clientHeight;
@@ -295,6 +300,7 @@ export class RendererComponent implements OnInit {
     this.inputTracker = new InputTracker();
     Planet.camera = this.camera;
     this.Earth.initMouseControl(this.inputTracker);
+    this.camera.initMouseControl(this.inputTracker);
     this.inputTracker.init(canvas);
     this.LightPosition = this.Sun.Position;
     this.LightColor = this.Sun.Color;
@@ -1097,6 +1103,8 @@ export class RendererComponent implements OnInit {
   render(now) {
     now *= 0.001;  // convert to seconds
     const deltaTime = now - this.then;
+    this.camera.deltaTime = deltaTime;
+    this.Earth.deltaTime = deltaTime;
     if (this.bStartCouting == 3) {
       this.mainMessage += "Textures loaded.\nTesting performance.";
       this.bStartCouting+=1;
@@ -1109,7 +1117,8 @@ export class RendererComponent implements OnInit {
         if (this.fpsCounter / this.countingTime > 15) {
           this.bChecking = false;
           this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
-          this.mainMessage += "\nUse W,S,A,D,Q and E to translate camera.\nUse I,J,K,L,U and O to rotate camera.\nClick left mouse button and move mouse to rotate Earth model.";
+          this.mainMessage += "\nUse left mouse button to rotate the Earth model.";
+          this.mainMessage += "\nUse right mouse button to rotate the camera.\nUse U and O to rotate camera around its forward.\nUse W and S to zoom in/out."
           this.mainMessage += "\nLast weather maps update: ";
           this.http.get('./assets/lastMapsUpdate.txt?'+this.currentId).subscribe(data => {
             this.mainMessage+=data['date'];
@@ -1140,7 +1149,7 @@ export class RendererComponent implements OnInit {
     }
     this.then = now;
     let pressedKeys = this.inputTracker.getCurrentlyPressedKeys()
-    this.camera.updateCameraKeyboard(deltaTime, pressedKeys);
+    this.camera.updateCameraKeyboardForwardRotate(deltaTime, pressedKeys);
     let origin: vec3
     origin = vec3.create()
     origin[2] = -26

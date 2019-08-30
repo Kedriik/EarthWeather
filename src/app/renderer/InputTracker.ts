@@ -3,9 +3,11 @@ export class InputTracker{
     currentlyPressedKeys: Boolean[];
     filter:number;
     lmbPressed:boolean=false;
+    rmbPressed:boolean=false;
     lastPosX:number = -1;
     lastPosY:number = -1;
     @Output() mouseMoving = new EventEmitter<any>();
+    @Output() mouseMoving1 = new EventEmitter<any>();
     init(canvas){
       document.onkeydown = this.handleKeyDown.bind(this);
       document.onkeyup = this.handleKeyUp.bind(this);
@@ -26,12 +28,17 @@ export class InputTracker{
     }
   
     handleMouseDown(event){
+      event.preventDefault();
       if(event.target.id  === "glcanvas" && event.buttons===1){
         this.lmbPressed = true;
+      }
+      if(event.target.id  === "glcanvas" && event.buttons===2){
+        this.rmbPressed = true;
       }
     }
     handleMouseUp(event){
         this.lmbPressed = false;
+        this.rmbPressed = false;
         this.lastPosX = -1;
         this.lastPosY = -1;
     }
@@ -41,6 +48,15 @@ export class InputTracker{
         let diffY = this.lastPosY - event.clientY;
         if(this.lastPosX != -1 && this.lastPosY != -1){
           this.mouseMoving.emit([diffX, diffY])
+        }
+        this.lastPosX = event.clientX;
+        this.lastPosY = event.clientY;
+      }
+      if(this.rmbPressed){
+        let diffX = this.lastPosX - event.clientX;
+        let diffY = this.lastPosY - event.clientY;
+        if(this.lastPosX != -1 && this.lastPosY != -1){
+          this.mouseMoving1.emit([diffX, diffY])
         }
         this.lastPosX = event.clientX;
         this.lastPosY = event.clientY;

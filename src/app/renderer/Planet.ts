@@ -58,7 +58,7 @@ export class Planet implements IRenderObject {
   RingsModelMatrix: any;
   RingsProgram: any;
   RingsProgramInfo: any;
-
+  deltaTime:number;
   ModelMatrix: mat4;
   AtmosphereModelMatrix: mat4
 
@@ -736,17 +736,11 @@ export class Planet implements IRenderObject {
     inputTracker.mouseMoving.subscribe(mov => this.rotateByMouse(mov));
   }
   rotateByMouse(mov) {
-    // let rotMatrixX = mat4.create();
-    // mat4.rotateY(rotMatrixX,rotMatrixX,0.01*mov[0]);
-    // let rotMatrixY = mat4.create();
-    // mat4.rotateZ(rotMatrixY,rotMatrixY,0.01*mov[1]);
-    // mat4.mul(this.ModelMatrix,this.ModelMatrix, rotMatrixY);
-    // mat4.mul(this.ModelMatrix,this.ModelMatrix, rotMatrixX);
     let mat1 = mat4.create();
     let mat2 = mat4.create();
     let rotV = vec3.create();
     vec3.cross(rotV, Planet.camera.Up, Planet.camera.Forward);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, 0.01 * mov[0], Planet.camera.Up);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -0.01 * mov[1], rotV);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, this.deltaTime* mov[0], Planet.camera.Up);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -this.deltaTime* mov[1], rotV);
   }
 }

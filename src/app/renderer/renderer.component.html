@@ -10,7 +10,7 @@
         </div>
       </div>
   <canvas  class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)="pauseRendering()"
-    id="glcanvas" align-c>
+    id="glcanvas" align-c oncontextmenu="return false;">
     Your browser doesn't appear to support the HTML5
   </canvas>
 </div>

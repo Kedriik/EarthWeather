@@ -2,6 +2,7 @@ import {mat4} from 'gl-matrix';
 import {vec4} from 'gl-matrix';
 import {vec3} from 'gl-matrix';
 import {quat} from 'gl-matrix';
+import { InputTracker } from 'src/app/renderer/inputTracker'
 
 export class Camera
 {
@@ -11,6 +12,7 @@ export class Camera
   Up:vec3;
   rotateSpeed:number=2;
   translateSpeed:number=10;
+  deltaTime:number;
   constructor(){
 
   }
@@ -44,6 +46,67 @@ export class Camera
     mat4.lookAt(this.ViewMatrix,this.Position,look_at,this.Up);
     return this.ViewMatrix;
   }
+  updateCameraKeyboardForwardRotate(deltaTime, pressedKeys){
+   
+    if(pressedKeys[87]==true)
+    {
+      let translateVector=vec3.create();
+      vec3.copy(translateVector,this.Forward)
+      vec3.scale(translateVector,translateVector,this.translateSpeed*deltaTime);
+      vec3.add(this.Position, this.Position,translateVector);
+      
+    }
+    if(pressedKeys[83]==true)
+    {
+      let translateVector=vec3.create();
+      vec3.copy(translateVector,this.Forward)
+      vec3.scale(translateVector,translateVector,-this.translateSpeed*deltaTime);
+      vec3.add(this.Position, this.Position,translateVector);
+      
+    }
+
+    if(pressedKeys[79]==true || pressedKeys[85]==true ){
+      let angle:number;
+      
+      if(pressedKeys[79]==true && pressedKeys[85]==true){
+        angle=0;
+      }
+      else{
+        if(pressedKeys[85]==true){
+          angle=deltaTime*this.rotateSpeed;
+        }
+        else if(pressedKeys[79]==true){
+          angle=-deltaTime*this.rotateSpeed;
+        }
+      }
+      let rotateAroundVector=vec3.create();
+    
+      
+      vec3.copy(rotateAroundVector,this.Forward);
+      
+      let rotateQuat=quat.create();
+      quat.setAxisAngle(rotateQuat, rotateAroundVector,angle);
+      let rotateMatrix=mat4.create();
+      mat4.fromQuat(rotateMatrix,rotateQuat);
+
+      let v4ForwardRotated=vec4.create();
+      vec4.transformMat4(v4ForwardRotated,[this.Forward[0],this.Forward[1],this.Forward[2],0],rotateMatrix);
+
+      let v4UpRotated=vec4.create();
+      vec4.transformMat4(v4UpRotated,[this.Up[0],this.Up[1],this.Up[2],0],rotateMatrix);
+
+
+      this.Forward[0]=v4ForwardRotated[0];
+      this.Forward[1]=v4ForwardRotated[1];
+      this.Forward[2]=v4ForwardRotated[2];
+
+      this.Up[0]=v4UpRotated[0];
+      this.Up[1]=v4UpRotated[1];
+      this.Up[2]=v4UpRotated[2];
+    }
+
+  }
+
   updateCameraKeyboard(deltaTime, pressedKeys){
     
       if(pressedKeys[87]==true)
@@ -268,5 +331,56 @@ export class Camera
     vt[1] = this.Forward[1]*-dist
     vt[2] = this.Forward[2]*-dist
     this.Position = vec3.add(this.Position,this.Position,vt)
+  }
+  initMouseControl(inputTracker: InputTracker) {
+    inputTracker.mouseMoving1.subscribe(mov => this.rotateByMouse(mov));
+  }
+  rotateByMouse(mov) {
+    for(let i =0;i<2;i++){
+      let origin = vec3.create();
+      let vt:vec3
+      vt = vec3.create()
+      let dist:number
+      vec3.subtract(vt,origin,this.Position);
+      dist = vec3.length(vt)
+
+      let rotateAroundVector=vec3.create();
+        
+      this.Position = origin
+      if(i==0){
+        vec3.copy(rotateAroundVector,this.Up);
+      }
+      else if (i==1){
+        let rotV = vec3.create();
+        vec3.cross(rotV, this.Forward,this.Up);
+        vec3.copy(rotateAroundVector,rotV);
+      }
+      let rotateSpeed:number
+      rotateSpeed = 1
+      let rotateQuat=quat.create();
+      quat.setAxisAngle(rotateQuat, rotateAroundVector,this.deltaTime*rotateSpeed*mov[i]);
+      let rotateMatrix=mat4.create();
+      mat4.fromQuat(rotateMatrix,rotateQuat);
+
+      let v4ForwardRotated=vec4.create();
+      vec4.transformMat4(v4ForwardRotated,[this.Forward[0],this.Forward[1],this.Forward[2],0],rotateMatrix);
+
+      let v4UpRotated=vec4.create();
+      vec4.transformMat4(v4UpRotated,[this.Up[0],this.Up[1],this.Up[2],0],rotateMatrix);
+
+
+      this.Forward[0]=v4ForwardRotated[0];
+      this.Forward[1]=v4ForwardRotated[1];
+      this.Forward[2]=v4ForwardRotated[2];
+
+      this.Up[0]=v4UpRotated[0];
+      this.Up[1]=v4UpRotated[1];
+      this.Up[2]=v4UpRotated[2];
+
+      vt[0] = this.Forward[0]*-dist
+      vt[1] = this.Forward[1]*-dist
+      vt[2] = this.Forward[2]*-dist
+      this.Position = vec3.add(this.Position,this.Position,vt)
+  }
   }
 }
