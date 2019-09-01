@@ -11,9 +11,6 @@
   uniform sampler2D TopologyMap;
   uniform sampler2D ColorMap;
   layout (location = 0) out vec4 OutputColor;
-  layout (location = 1) out vec4 OutputNormal;
-  layout (location = 2) out vec4 OutputPosition;
-  layout (location = 3) out vec4 OutputColorProperties;
   ///////////////NOISE UTILITY////////////
  float PI=3.14159265358;//97932384626433832;
 
@@ -104,21 +101,10 @@ void main(void) {
     vec3 normal = estimateNormal(p);
     normal = (uInverseViewMatrix*vec4(normal,0.0)).xyz;
     p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    OutputNormal.xyz = normal;
-    OutputNormal.w = 1.0;
-    OutputPosition.xyz = p;
-    OutputPosition.w = 1.0;
     OutputColor.xyz = color.xyz;
     OutputColor.w = 1.0;
-    OutputColorProperties.xyz = vec3(0,1.0,0);
- 
-    OutputColorProperties.w = 1.0;
-    ///
-     vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4 (p, 1);
-    
+    vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4 (p, 1);
     float ndc_depth = Pclip.z / Pclip.w;
-      
-       
     float C =1.0,
     near = 0.1,
     far = 100000.0;

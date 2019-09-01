@@ -38,7 +38,7 @@ export class RendererComponent implements OnInit {
       discard;
     }`
   ];
-  constructor(private http:HttpClient) {
+  constructor(private http: HttpClient) {
 
   }
   ;
@@ -63,6 +63,8 @@ export class RendererComponent implements OnInit {
   ///Particles///
   CopyProgram: any;
   CopyProgramInfo: any;
+  ParticlesSphereFramebuffer: any;
+  ParticlesSphereTexture: any;
   ParticlesFramebufferFront: any;
   ParticlesFramebufferBack: any;
   ParticlesCopyFramebuffer: any;
@@ -125,11 +127,11 @@ export class RendererComponent implements OnInit {
   fpsCounter: number = 0;
   countingTime: number = 0;
   bStartCouting = 0;
-  bFirstTry=true;
+  bFirstTry = true;
   particleFramesOffset = 0;
-  cloudsUrl:string;
-  dirsWindSigma995Url:string;
-  currentId:any;
+  cloudsUrl: string;
+  dirsWindSigma995Url: string;
+  currentId: any;
 
   delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -327,6 +329,30 @@ export class RendererComponent implements OnInit {
   }
   initParticlesFramebuffer() {
     this.gl.getExtension('EXT_color_buffer_float');
+    //SphereFramebuffer
+    this.ParticlesSphereFramebuffer = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesSphereFramebuffer);
+    this.ParticlesSphereFramebuffer.width = canvas.width;
+    this.ParticlesSphereFramebuffer.height = canvas.height;
+
+    this.ParticlesSphereTexture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesSphereTexture);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D, 0, this.gl.RGBA32F, this.ParticlesSphereFramebuffer.width,
+      this.ParticlesSphereFramebuffer.height, 0, this.gl.RGBA, this.gl.FLOAT, null
+    );
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+
+    this.gl.framebufferTexture2D(
+      this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0,
+      this.gl.TEXTURE_2D, this.ParticlesSphereTexture, 0
+    );
+
+    this.gl.drawBuffers([this.gl.COLOR_ATTACHMENT0]);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesSphereFramebuffer);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     //Front
     this.ParticlesFramebufferFront = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferFront);
@@ -622,8 +648,8 @@ export class RendererComponent implements OnInit {
     }
   }
   updateAndDrawParticles(ProjectionMatrix, ViewMatrix, time, deltaTime) {
-    this.particleFramesOffset+=1;
-    if (this.particlesStop || !this.renderClouds || this.particleFramesOffset%3 != 0) {
+    this.particleFramesOffset += 1;
+    if (this.particlesStop || !this.renderClouds || this.particleFramesOffset % 3 != 0) {
       return;
     }
 
@@ -976,7 +1002,7 @@ export class RendererComponent implements OnInit {
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
     gl.disable(gl.DEPTH_TEST);
-    this.Earth.markFootprint(gl,this.ViewMatrix,this.ProjectionMatrix);
+    this.Earth.markFootprint(gl, this.ViewMatrix, this.ProjectionMatrix);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
     gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
@@ -1003,13 +1029,13 @@ export class RendererComponent implements OnInit {
     if (this.renderClouds) {
 
       if (!this.particlesStop) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.ParticlesSphereFramebuffer);
         gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LESS);            // Near things obscure far things
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-        this.Earth.markWindSpeeds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesSpeeds);
+        this.Earth.markWindSpeeds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesVelocities);
       }
       else {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
@@ -1114,7 +1140,7 @@ export class RendererComponent implements OnInit {
     this.Earth.deltaTime = deltaTime;
     if (this.bStartCouting == 3) {
       this.mainMessage += "Textures loaded.\nTesting performance.";
-      this.bStartCouting+=1;
+      this.bStartCouting += 1;
     }
     if (this.bStartCouting > 3) {
 
@@ -1123,17 +1149,17 @@ export class RendererComponent implements OnInit {
       if (this.countingTime > 10) {
         if (this.fpsCounter / this.countingTime > 15) {
           this.bChecking = false;
-          this.mainMessage += "Fps is:"+ (this.fpsCounter / this.countingTime).toFixed(2);
+          this.mainMessage += "Fps is:" + (this.fpsCounter / this.countingTime).toFixed(2);
           this.mainMessage += "\nUse left mouse button to rotate the Earth model.";
           this.mainMessage += "\nUse right mouse button to rotate the camera.\nUse U and O to rotate camera around its forward.\nUse W and S to zoom in/out."
           this.mainMessage += "\nLast weather maps update: ";
-          this.http.get('./assets/lastMapsUpdate.txt?'+this.currentId).subscribe(data => {
-            this.mainMessage+=data['date'];
-        })
+          this.http.get('./assets/lastMapsUpdate.txt?' + this.currentId).subscribe(data => {
+            this.mainMessage += data['date'];
+          })
           //this.mainMessage +=   require("./assets/lastMapsUpdate.txt");
           this.bStartCouting = 0;
         }
-        else if(this.bFirstTry){
+        else if (this.bFirstTry) {
           this.mainMessage += "\nNot enough performance.Turning off features.";
           this.countingTime = 0;
           this.fpsCounter = 0;
