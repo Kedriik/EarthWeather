@@ -34,7 +34,7 @@ void main(void){
     vec4 currentVelocity    = texture(uWindVectors, vec2(1.0-particlePosition.x,particlePosition.y));
     float speed = sqrt(pow(currentVelocity.y,2.0)+pow(currentVelocity.z,2.0));
     if(speed < 0.5){
-        particlePosition.w = 0.0;
+        particlePosition = vec4(0.0);
     }
     vec2 vel;
     
