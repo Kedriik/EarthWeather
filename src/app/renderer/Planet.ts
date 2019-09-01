@@ -42,6 +42,8 @@ export class Planet implements IRenderObject {
   static MyCurrentRenderer: any;
   DefferedCloudsProgram: any;
   DefferedCloudsProgramInfo: any;
+  WindDirsProgram: any;
+  WindDirsProgramInfo: any;
   ColorPath: any;
   PlanetName: string;
   TopologyImage: any;
@@ -58,7 +60,7 @@ export class Planet implements IRenderObject {
   RingsModelMatrix: any;
   RingsProgram: any;
   RingsProgramInfo: any;
-  deltaTime:number;
+  deltaTime: number;
   ModelMatrix: mat4;
   AtmosphereModelMatrix: mat4
 
@@ -154,6 +156,26 @@ export class Planet implements IRenderObject {
       },
     };
 
+    this.WindDirsProgram = GLHelpers.initShaderProgram(gl, Planet.vsSource, require("raw-loader!./Shaders/WindDirsFragment.shader"));
+    this.WindDirsProgramInfo = {
+      program: this.WindDirsProgram,
+      attribLocations: {
+        vertexPosition: gl.getAttribLocation(this.WindDirsProgram, 'aVertexPosition'),
+        vertexColor: gl.getAttribLocation(this.WindDirsProgram, 'aVertexColor'),
+      },
+      uniformLocations: {
+        projectionMatrix: gl.getUniformLocation(this.WindDirsProgram, 'uProjectionMatrix'),
+        topologyMap: gl.getUniformLocation(this.WindDirsProgram, 'TopologyMap'),
+        colorMap: gl.getUniformLocation(this.WindDirsProgram, 'ColorMap'),
+        modelMatrix: gl.getUniformLocation(this.WindDirsProgram, 'uModelMatrix'),
+        planetPosition: gl.getUniformLocation(this.WindDirsProgram, 'uPlanetPosition'),
+        planetSize: gl.getUniformLocation(this.WindDirsProgram, 'uPlanetSize'),
+        viewMatrix: gl.getUniformLocation(this.WindDirsProgram, 'uViewMatrix'),
+        inverseViewMatrix: gl.getUniformLocation(this.WindDirsProgram, 'uInverseViewMatrix'),
+        inverseModelMatrix: gl.getUniformLocation(this.WindDirsProgram, 'uInverseModelMatrix'),
+        screenSize: gl.getUniformLocation(this.WindDirsProgram, 'uScreenSize')
+      },
+    };
 
     Planet.AtmosphereSphereBuffers = GLHelpers.generateSphere(gl, 50, 50, 1);
     Planet.CloudsSphereBuffers = Planet.AtmosphereSphereBuffers;//GLHelpers.generateSphere(gl, 100, 100, 1);
@@ -352,13 +374,94 @@ export class Planet implements IRenderObject {
       gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     }
   }
-  markFootprint(gl, ViewMatrix, ProjectionMatrix,){
+  markFootprint(gl, ViewMatrix, ProjectionMatrix, ) {
     let AtmosphereModelMatrix: mat4;
     AtmosphereModelMatrix = mat4.create();
     let r = this.Size + 1.0;
     mat4.scale(AtmosphereModelMatrix, this.ModelMatrix, [r, r, r]);
     GLHelpers.genericDraw(gl, Planet.AtmosphereSphereBuffers, Planet.AtmosphereSphereProgramInfo, AtmosphereModelMatrix, ViewMatrix, ProjectionMatrix);
     //
+  }
+  markWindSpeeds(gl, ViewMatrix, ProjectionMatrix, buffers, cloudsTexture) {
+    gl.useProgram(this.WindDirsProgramInfo.program);
+    const numComponents = 3;  // pull out 2 values per iteration
+    const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+    const normalize = false;  // don't normalize
+    const stride = 0;         // how many bytes to get from one set of values to the next
+    // 0 = use type and numComponents above
+    const offset = 0;         // how many bytes inside the buffer to start from
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+
+    gl.vertexAttribPointer(
+      this.WindDirsProgramInfo.attribLocations.vertexPosition,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset);
+    gl.enableVertexAttribArray(
+      this.WindDirsProgramInfo.attribLocations.vertexPosition);
+
+
+    // Tell WebGL which indices to use to index the vertices
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    // Tell WebGL to use our program when drawing
+    gl.activeTexture(gl.TEXTURE7);
+    gl.bindTexture(gl.TEXTURE_2D, cloudsTexture);
+    gl.uniform1i(this.WindDirsProgramInfo.uniformLocations.colorMap, 7);
+    // Set the shader uniforms
+
+    gl.uniformMatrix4fv(
+      this.WindDirsProgramInfo.uniformLocations.projectionMatrix,
+      false,
+      ProjectionMatrix);
+    gl.uniformMatrix4fv(
+      this.WindDirsProgramInfo.uniformLocations.modelMatrix,
+      false,
+      this.ModelMatrix);
+
+    gl.uniform3f(
+      this.WindDirsProgramInfo.uniformLocations.planetPosition,
+      this.Position[0],
+      this.Position[1],
+      this.Position[2]
+    )
+
+    let atmosphereSize = this.Size + 0.1;
+    gl.uniform1f(
+      this.WindDirsProgramInfo.uniformLocations.planetSize,
+      atmosphereSize
+    )
+    gl.uniformMatrix4fv(
+      this.WindDirsProgramInfo.uniformLocations.viewMatrix,
+      false,
+      ViewMatrix);
+
+    let inverseViewMatrix = mat4.create();
+    mat4.invert(inverseViewMatrix, ViewMatrix);
+
+    gl.uniformMatrix4fv(
+      this.WindDirsProgramInfo.uniformLocations.inverseViewMatrix,
+      false,
+      inverseViewMatrix);
+    let inverseModelMatrix = mat4.create();
+    mat4.invert(inverseModelMatrix, this.ModelMatrix);
+    gl.uniformMatrix4fv(
+      this.WindDirsProgramInfo.uniformLocations.inverseModelMatrix,
+      false,
+      inverseModelMatrix
+    )
+    gl.uniform2f(
+      this.WindDirsProgramInfo.uniformLocations.screenSize,
+      buffers.canvas.clientWidth,
+      buffers.canvas.clientHeight
+    )
+    {
+      const vertexCount = 6;
+      const type = gl.UNSIGNED_SHORT;
+      const offset = 0;
+      gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+    }
   }
   drawClassicClouds(gl, ViewMatrix, ProjectionMatrix, buffers, cloudsTexture = this.CloudsTexture) {
     {
@@ -619,7 +722,7 @@ export class Planet implements IRenderObject {
     gl.uniform1i(Planet.AtmosphereProgramInfo.uniformLocations.atmosphereLayer, 5);
 
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-    
+
     gl.disable(gl.BLEND);
   }
 
@@ -740,7 +843,7 @@ export class Planet implements IRenderObject {
     let mat2 = mat4.create();
     let rotV = vec3.create();
     vec3.cross(rotV, Planet.camera.Up, Planet.camera.Forward);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, this.deltaTime* mov[0], Planet.camera.Up);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -this.deltaTime* mov[1], rotV);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, this.deltaTime * mov[0], Planet.camera.Up);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -this.deltaTime * mov[1], rotV);
   }
 }

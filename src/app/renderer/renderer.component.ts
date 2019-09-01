@@ -1001,16 +1001,23 @@ export class RendererComponent implements OnInit {
     gl.cullFace(gl.BACK);
 
     if (this.renderClouds) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
-      gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
-      gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-      gl.depthFunc(gl.LESS);            // Near things obscure far things
-      gl.clear(gl.COLOR_BUFFER_BIT)
-      gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+
       if (!this.particlesStop) {
-        this.Earth.drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesFinalTexture);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+        gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+        gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+        gl.depthFunc(gl.LESS);            // Near things obscure far things
+        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+        this.Earth.markWindSpeeds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesSpeeds);
       }
       else {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rttFrameBuffer);
+        gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
+        gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+        gl.depthFunc(gl.LESS);            // Near things obscure far things
+        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
         this.Earth.drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
       }
       this.drawDeffered(gl, buffers);
