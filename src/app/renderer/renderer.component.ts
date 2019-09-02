@@ -187,6 +187,7 @@ export class RendererComponent implements OnInit {
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
     this.camera.init();
+    
     this.screenSize[0] = canvas.clientWidth;
     this.screenSize[1] = canvas.clientHeight;
     const fieldOfView = 45 * Math.PI / 180;   // in radians
@@ -267,6 +268,7 @@ export class RendererComponent implements OnInit {
     this.CommonBuffers.canvas = canvas;
     this.camera = new Camera();
     this.camera.init();
+    this.camera.currentRenderer = this;
     for (let i = 0; i < this.planets.length; i++) {
       let array = []
       array.push(i);
@@ -306,6 +308,7 @@ export class RendererComponent implements OnInit {
     this.Earth.initMouseControl(this.inputTracker);
     this.camera.initMouseControl(this.inputTracker);
     this.inputTracker.init(canvas);
+    this.inputTracker.currentRenderer = this;
     this.LightPosition = this.Sun.Position;
     this.LightColor = this.Sun.Color;
     this.LightPower = this.Sun.Power;
@@ -1250,6 +1253,7 @@ export class RendererComponent implements OnInit {
       this.cloudsButtonName = "clouds"
     }
     this.bPauseRendering = false;
+    this.clearParticles();
   }
   atmosphereMode() {
     this.renderAtmosphere = !this.renderAtmosphere;
@@ -1281,5 +1285,33 @@ export class RendererComponent implements OnInit {
       this.renderCloudsButtonName = "clouds:off";
     }
     this.bPauseRendering = false;
+    this.clearParticles();
   }
+  clearParticles(){
+    
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesCopyFramebuffer);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferFront);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBuffer);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
+
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferFront);
+    this.gl.viewport(0, 0, this.particlesSize, this.particlesSize);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFramebufferBack);
+    this.gl.viewport(0, 0, this.particlesSize, this.particlesSize);
+    this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  }
+
+
 }

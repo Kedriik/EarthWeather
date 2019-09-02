@@ -10,6 +10,7 @@ export class Camera
   Position:vec3;
   Forward:vec3;
   Up:vec3;
+  currentRenderer:any;
   rotateSpeed:number=2;
   translateSpeed:number=10;
   deltaTime:number;
@@ -54,6 +55,7 @@ export class Camera
       vec3.copy(translateVector,this.Forward)
       vec3.scale(translateVector,translateVector,this.translateSpeed*deltaTime);
       vec3.add(this.Position, this.Position,translateVector);
+      this.currentRenderer.clearParticles();
       
     }
     if(pressedKeys[83]==true)
@@ -62,12 +64,12 @@ export class Camera
       vec3.copy(translateVector,this.Forward)
       vec3.scale(translateVector,translateVector,-this.translateSpeed*deltaTime);
       vec3.add(this.Position, this.Position,translateVector);
-      
+      this.currentRenderer.clearParticles();
     }
 
     if(pressedKeys[79]==true || pressedKeys[85]==true ){
       let angle:number;
-      
+      this.currentRenderer.clearParticles();
       if(pressedKeys[79]==true && pressedKeys[85]==true){
         angle=0;
       }

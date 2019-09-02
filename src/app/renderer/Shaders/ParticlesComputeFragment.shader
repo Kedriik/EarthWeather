@@ -31,16 +31,16 @@ void main(void){
         particlePosition.z  = 0.0;
     }
 
-    vec4 currentVelocity    = texture(uWindVectors, vec2(1.0-particlePosition.x,particlePosition.y));
+    vec4 currentVelocity    = texture(uWindVectors, vec2(particlePosition.x,particlePosition.y));
     float speed = sqrt(pow(currentVelocity.y,2.0)+pow(currentVelocity.z,2.0));
     if(speed < 0.5){
         particlePosition = vec4(0.0);
     }
     vec2 vel;
     
-    float scale = 0.1;
+    float scale = 1.0;
 
-    particlePosition.xy = particlePosition.xy - scale*uDeltaTime*(vec2(currentVelocity.zy - vec2(127.0/255.0)));
+    particlePosition.xy = particlePosition.xy + scale*uDeltaTime*(vec2(currentVelocity.zy - vec2(127.0/255.0)));
     particlePosition.x = abs(fract(particlePosition.x));
     particlePosition.y = abs(fract(particlePosition.y));
     OutputPositions = particlePosition;

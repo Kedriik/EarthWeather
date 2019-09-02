@@ -33,7 +33,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 materialProp;
 
   vec2 coordinates(vec3 dir){
-    return vec2(((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f,(asin(dir.y) / PI) + 0.5f);
+    return vec2(1.0-((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f,(asin(dir.y) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){

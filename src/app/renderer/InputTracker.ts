@@ -4,6 +4,7 @@ export class InputTracker{
     filter:number;
     lmbPressed:boolean=false;
     rmbPressed:boolean=false;
+    currentRenderer:any;
     lastPosX:number = -1;
     lastPosY:number = -1;
     @Output() mouseMoving = new EventEmitter<any>();
@@ -48,6 +49,7 @@ export class InputTracker{
         let diffY = this.lastPosY - event.clientY;
         if(this.lastPosX != -1 && this.lastPosY != -1){
           this.mouseMoving.emit([diffX, diffY])
+          this.currentRenderer.clearParticles();
         }
         this.lastPosX = event.clientX;
         this.lastPosY = event.clientY;
@@ -57,6 +59,7 @@ export class InputTracker{
         let diffY = this.lastPosY - event.clientY;
         if(this.lastPosX != -1 && this.lastPosY != -1){
           this.mouseMoving1.emit([diffX, diffY])
+          this.currentRenderer.clearParticles();
         }
         this.lastPosX = event.clientX;
         this.lastPosY = event.clientY;
