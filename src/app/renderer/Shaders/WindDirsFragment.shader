@@ -14,6 +14,11 @@
   ///////////////NOISE UTILITY////////////
  float PI=3.14159265358;//97932384626433832;
 
+float rand(const vec2 co) {
+    float t = dot(vec2(12.9898, 78.233), co);
+    return fract(sin(t) * (4375.85453 + t));
+}
+
 vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
     vec2 xy = fragCoord - size / 2.0;
     float z = size.y / (2.0*tan(radians(fieldOfView) / 2.0));
@@ -100,8 +105,22 @@ void main(void) {
     }
     vec3 normal = estimateNormal(p);
     normal = (uInverseViewMatrix*vec4(normal,0.0)).xyz;
-    p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    OutputColor.xyz = color.xyz;
+    p = (uInverseViewMatrix*vec4(p,1.0)).xyz; //worldspace
+    float windDirNS = color.y - (127.0/255.0);
+    float windDirWE = color.z - (127.0/255.0);
+    vec4 NorthPole = vec4(0.0,uPlanetSize,0.0,1.0);
+    NorthPole = uModelMatrix*NorthPole;
+    vec3 NV = normalize(NorthPole.xyz - p);
+    vec3 EV = normalize(cross(p,NV));
+    // vec3 v1 = normalize(vec3(rand(p.xy), rand(p.yz),rand(p.zx)));
+    // vec3 v2 = normalize(vec3(rand(v1.xy),rand(v1.yz),rand(v1.zx)));
+    // vec3 temp = normalize(cross(v1, normalize(p)));
+
+    // vec3 NV = normalize(cross(normalize(p),temp));
+    // vec3 EV = normalize(cross(normalize(p),NV));
+    vec3 finalDirVector = (uProjectionMatrix*uViewMatrix*vec4(NV*windDirNS+EV*windDirWE,0.0)).xyz; 
+    
+    OutputColor.xyz = finalDirVector;
     OutputColor.w = 1.0;
     vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4 (p, 1);
     float ndc_depth = Pclip.z / Pclip.w;

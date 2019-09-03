@@ -180,7 +180,6 @@ export class RendererComponent implements OnInit {
 
   }
   onResize(event) {
-
     this.gl = this.initWebGL(canvas);
     canvas.width = document.body.clientWidth;
     canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
