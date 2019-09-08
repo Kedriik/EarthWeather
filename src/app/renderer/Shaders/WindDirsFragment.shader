@@ -76,6 +76,27 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
 
     return vec3(0,0,0);
   }
+  vec3 earthPos(vec2 uv){
+  float lWidth = 1.0;
+  float lHeight = 1.0;
+  float radius = 1.0;
+  float theta = ((2.0 * PI) / lWidth) * uv.x;
+  float phi = (PI / lHeight) *uv.y;
+  float dX = cos(theta) * sin(phi) * radius;
+  float dY = sin(theta) * sin(phi) * radius;
+  float dZ = -cos(phi) * radius;
+  return vec3(-dX, dY, dZ);
+}
+// float fi = asin(p.z/uPlanetSize);
+//   float l  = atan(p.y,p.x)
+//vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
+vec3 windDir(vec3 p){
+  float fi = asin(p.z);
+  float l  = atan(p.y,p.x);
+  vec3 E = vec3(-sin(l), cos(l), 0.0);
+  vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
+  return N;
+}
 void main(void) {
   OutputColor = vec4(0,0,0,1);
   vec4 cameraPos=vec4(0,0,0,1);
@@ -103,25 +124,15 @@ void main(void) {
     else{
       color = texture(ColorMap, _coords);
     }
-    vec3 normal = estimateNormal(p);
-    normal = (uInverseViewMatrix*vec4(normal,0.0)).xyz;
-    p = (uInverseViewMatrix*vec4(p,1.0)).xyz; //worldspace
-    float windDirNS = color.y - (127.0/255.0);
-    float windDirWE = color.z - (127.0/255.0);
-    vec4 NorthPole = vec4(0.0,uPlanetSize,0.0,1.0);
-    NorthPole = uModelMatrix*NorthPole;
-    vec3 NV = normalize(NorthPole.xyz - p);
-    vec3 EV = normalize(cross(p,NV));
-    // vec3 v1 = normalize(vec3(rand(p.xy), rand(p.yz),rand(p.zx)));
-    // vec3 v2 = normalize(vec3(rand(v1.xy),rand(v1.yz),rand(v1.zx)));
-    // vec3 temp = normalize(cross(v1, normalize(p)));
-
-    // vec3 NV = normalize(cross(normalize(p),temp));
-    // vec3 EV = normalize(cross(normalize(p),NV));
-    vec3 finalDirVector = (uProjectionMatrix*uViewMatrix*vec4(NV*windDirNS+EV*windDirWE,0.0)).xyz; 
     
-    OutputColor.xyz = finalDirVector;
+    vec4 positionModelSpace = vec4(earthPos(_coords),1.0);
+    vec4 windDirModelSpace  = vec4(windDir(positionModelSpace.xyz),0.0);
+    vec4 finalDirVector = (uViewMatrix*uModelMatrix*windDirModelSpace); 
+    finalDirVector.xyz /= finalDirVector.w;
+    OutputColor.xyz = 0.01*windDirModelSpace.xyz;//finalDirVector.xyz;
     OutputColor.w = 1.0;
+
+    p = (uInverseViewMatrix*vec4(p,1.0)).xyz; //worldspace
     vec4 Pclip = uProjectionMatrix*uViewMatrix * vec4 (p, 1);
     float ndc_depth = Pclip.z / Pclip.w;
     float C =1.0,
