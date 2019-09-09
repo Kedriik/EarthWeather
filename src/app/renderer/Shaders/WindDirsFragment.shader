@@ -38,7 +38,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 materialProp;
 
   vec2 coordinates(vec3 dir){
-    return vec2(1.0-((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f,(asin(dir.y) / PI) + 0.5f);
+     return vec2(1.0-(((atan(dir.x, dir.y) / PI) + 1.0f) * 0.5f),(asin(-dir.z) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
@@ -49,10 +49,8 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   float dist;
   vec3 dir;
   float planetary(in vec3 p){
-    spherePos=vec4(uPlanetPosition,1);
-    spherePos=spherePos;
     p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    dir=normalize(p-spherePos.xyz);
+    dir=normalize(p);
     dir=(uModelMatrix*vec4(dir,0)).xyz;
     _coords = coordinates(normalize(dir));
     dist = distance(p,spherePos.xyz) - (uPlanetSize);
@@ -95,7 +93,7 @@ vec3 windDir(vec3 p){
   float l  = atan(p.y,p.x);
   vec3 E = vec3(-sin(l), cos(l), 0.0);
   vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
-  return N;
+  return E;
 }
 void main(void) {
   OutputColor = vec4(0,0,0,1);
@@ -124,12 +122,12 @@ void main(void) {
     else{
       color = texture(ColorMap, _coords);
     }
-    
-    vec4 positionModelSpace = vec4(earthPos(_coords),1.0);
-    vec4 windDirModelSpace  = vec4(windDir(positionModelSpace.xyz),0.0);
-    vec4 finalDirVector = (uViewMatrix*uModelMatrix*windDirModelSpace); 
-    finalDirVector.xyz /= finalDirVector.w;
-    OutputColor.xyz = 0.01*windDirModelSpace.xyz;//finalDirVector.xyz;
+    p = normalize((inverse(uViewMatrix)*vec4(p,1.0)).xyz);
+    vec4 positionModelSpace = vec4(dir,1.0);//vec4(earthPos(_coords),1.0);
+    vec4 windDirModelSpace  = vec4(windDir((inverse(uModelMatrix)*vec4(p,1.0)).xyz),0.0);
+    vec4 finalDirVector = (uProjectionMatrix*uViewMatrix*uModelMatrix*windDirModelSpace); 
+    //finalDirVector.xyz /= finalDirVector.w;
+    OutputColor.xyz = 0.01*finalDirVector.xyz;
     OutputColor.w = 1.0;
 
     p = (uInverseViewMatrix*vec4(p,1.0)).xyz; //worldspace

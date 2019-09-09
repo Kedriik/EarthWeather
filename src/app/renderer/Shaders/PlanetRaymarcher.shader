@@ -40,7 +40,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 materialProp;
 
 vec2 coordinates(vec3 dir){
-    return vec2(1.0-(((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f),(asin(dir.y) / PI) + 0.5f);
+    return vec2(1.0-(((atan(dir.x, dir.y) / PI) + 1.0f) * 0.5f),(asin(-dir.z) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
@@ -58,16 +58,11 @@ vec4 seed;
 vec4 topology;
 float elevation;
 float planetary(in vec3 p){
-  spherePos=vec4(uPlanetPosition,1);
-  spherePos=spherePos;
   p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-   A=0.028;
-   f=10.0;
-   R=uPlanetSize;
-   dist;
-  dir=normalize(p-spherePos.xyz);
-  dir=(uModelMatrix*vec4(dir,0)).xyz;
-  seed=vec4(R*dir,1);
+  R=uPlanetSize;
+  dist;
+  dir     = normalize(p);
+  dir     = (uModelMatrix*vec4(dir,0)).xyz;
   _coords = coordinates(normalize(dir));
   
   if(_coords.x>0.99 || _coords.x<0.01 || _coords.y>0.99 || _coords.y<0.01){
@@ -77,7 +72,7 @@ float planetary(in vec3 p){
     topology = texture(TopologyMap, _coords);
   }
   elevation = (remap((topology.y),0.0,1.0,0.0,0.05));
-  dist = distance(p,spherePos.xyz) - (R + elevation);
+  dist = length(p) - (R + elevation);
   
   return dist;
 }
