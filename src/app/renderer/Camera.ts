@@ -20,15 +20,15 @@ export class Camera
   init(){
     this.ViewMatrix=mat4.create();
     this.Position=vec3.create();
-    this.Position[0]= 0.0;
-    this.Position[1] = 20;
-    this.Position[2] = 0;
+    this.Position[0]= -20.0;
+    this.Position[1] = 0.0;
+    this.Position[2] = 0.0;
     this.Forward=vec3.create();
-    this.Forward[0] = 0;
-    this.Forward[2] = -1;
+    this.Forward[0] = -1;
+    this.Forward[2] = 0;
     this.Forward[1] = 0; 
     this.Up=vec3.create();
-    this.Up[1]= 1;
+    this.Up[2]= -1;
   }
 
   setPosition(position)

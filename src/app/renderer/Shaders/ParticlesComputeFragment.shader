@@ -6,6 +6,7 @@ uniform float uTime;
 uniform float uDeltaTime;
 uniform float uParticleLife;
 uniform int   uParticleCount;
+uniform vec3  uCameraPosition;
 uniform sampler2D uParticlesPositions;
 uniform sampler2D uWindVectors;
 
@@ -39,7 +40,7 @@ void main(void){
     }
     vec2 vel;
     
-    float scale = 1.0;
+    float scale = 3.0/length(uCameraPosition);
 
     particlePosition.xy = particlePosition.xy + scale*uDeltaTime*(vec2(currentVelocity.x,currentVelocity.y));
     particlePosition.x = abs(fract(particlePosition.x));

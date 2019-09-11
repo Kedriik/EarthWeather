@@ -514,7 +514,8 @@ export class RendererComponent implements OnInit {
         particleLife: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticleLife'),
         particlesPositions: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticlesPositions'),
         windVectors: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uWindVectors'),
-        particleCount: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticleCount')
+        particleCount: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uParticleCount'),
+        cameraPosition: this.gl.getUniformLocation(this.ParticleComputeProgram, 'uCameraPosition')
       },
     };
 
@@ -629,6 +630,13 @@ export class RendererComponent implements OnInit {
       this.gl.uniform1i(this.ParticleComputeProgramInfo.uniformLocations.particlesPositions, 0);
     }
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.CommonBuffers.position);
+
+    this.gl.uniform3f(
+      this.ParticleComputeProgramInfo.uniformLocations.cameraPosition,
+      this.camera.Position[0],
+      this.camera.Position[1],
+      this.camera.Position[2]
+    );
 
     this.gl.vertexAttribPointer(
       this.ParticleComputeProgramInfo.attribLocations.particlesIndexes,
