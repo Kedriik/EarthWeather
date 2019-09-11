@@ -36,7 +36,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 materialProp;
 
   vec2 coordinates(vec3 dir){
-    return vec2(((atan(dir.x, dir.z) / PI) + 1.0f) * 0.5f,(asin(dir.y) / PI) + 0.5f);
+        return vec2(1.0-(((atan(dir.y, dir.x) / PI) + 1.0f) * 0.5f),(asin(dir.z) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
@@ -47,10 +47,8 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   float dist;
   vec3 dir;
   float planetary(in vec3 p){
-    spherePos=vec4(uPlanetPosition,1);
-    spherePos=spherePos;
     p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    dir=normalize(p-spherePos.xyz);
+    dir=normalize(p);
     dir=(uModelMatrix*vec4(dir,0)).xyz;
     _coords = coordinates(normalize(dir));
     dist = distance(p,spherePos.xyz) - (uPlanetSize);

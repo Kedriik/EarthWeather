@@ -1029,7 +1029,7 @@ export class RendererComponent implements OnInit {
       this.camera.Position[2] += tvec[2]
     }
     this.ViewMatrix = this.camera.getViewMatrix();
-
+    this.Earth.animate(deltaTime, buffers);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -1048,7 +1048,7 @@ export class RendererComponent implements OnInit {
 
 
 
-    this.Earth.animate(deltaTime, buffers);
+    
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
     this.drawDeffered(gl, buffers);

@@ -36,64 +36,71 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   }
   vec4 color;
   vec3 materialProp;
-
+// float fi = asin(p.z/uPlanetSize);
+//   float l  = atan(p.y,p.x)
+//vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
   vec2 coordinates(vec3 dir){
-     return vec2(1.0-(((atan(dir.x, dir.y) / PI) + 1.0f) * 0.5f),(asin(-dir.z) / PI) + 0.5f);
+     return vec2(1.0-(((atan(dir.y, dir.x) / PI) + 1.0f) * 0.5f),(asin(dir.z) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
   return new_min + ( ((value - original_min) / (original_max - original_min)) * (new_max - new_min) );
 }
-  vec2 _coords;
-  vec4 spherePos;
-  float dist;
-  vec3 dir;
-  float planetary(in vec3 p){
-    p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
-    dir=normalize(p);
-    dir=(uModelMatrix*vec4(dir,0)).xyz;
-    _coords = coordinates(normalize(dir));
-    dist = distance(p,spherePos.xyz) - (uPlanetSize);
-    return dist;
-  }
+vec2 _coords;
+vec4 spherePos;
+float dist;
+vec3 dir;
+float planetary(in vec3 p){
+  p = (uInverseViewMatrix*vec4(p,1.0)).xyz;
+  dir=normalize(p);
+  dir=(uModelMatrix*vec4(dir,0.0)).xyz;
+  _coords = coordinates(normalize(dir));
+  dist = distance(p,spherePos.xyz) - (uPlanetSize);
+  return dist;
+}
 
   
-  float sceneSDF(in vec3 p)
-  {
-    return planetary(p);
-  }
-  float EPSILON=0.001;
-  vec3 estimateNormal(vec3 p) {
-    return normalize(vec3(
-    sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-    sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-    sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
-    ));
-  }
-  vec3 estimateColor(vec3 p){
+float sceneSDF(in vec3 p)
+{
+  return planetary(p);
+}
+float EPSILON=0.001;
+vec3 estimateNormal(vec3 p) {
+  return normalize(vec3(
+  sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
+  sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
+  sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+  ));
+}
+vec3 estimateColor(vec3 p){
+  return vec3(0,0,0);
+}
 
-    return vec3(0,0,0);
-  }
-  vec3 earthPos(vec2 uv){
-  float lWidth = 1.0;
-  float lHeight = 1.0;
+  // float theta = 2.0 * PI * uv.x;
+  // float phi = PI * uv.y;
+  // float radius = 1.0;
+  // float x = cos(theta) * sin(phi) * radius;
+  // float y = sin(theta) * sin(phi) * radius;
+  // float z = -cos(phi) * radius;
+vec3 earthPos(vec2 uv){
+  float theta = 2.0 * PI * uv.x;
+  float phi = PI * uv.y;
   float radius = 1.0;
-  float theta = ((2.0 * PI) / lWidth) * uv.x;
-  float phi = (PI / lHeight) *uv.y;
-  float dX = cos(theta) * sin(phi) * radius;
-  float dY = sin(theta) * sin(phi) * radius;
-  float dZ = -cos(phi) * radius;
-  return vec3(-dX, dY, dZ);
+  float x = cos(theta) * sin(phi) * radius;
+  float y = sin(theta) * sin(phi) * radius;
+  float z = -cos(phi) * radius;
+  return vec3(x,y,z);
 }
 // float fi = asin(p.z/uPlanetSize);
 //   float l  = atan(p.y,p.x)
 //vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
+//vec2(1.0-(((atan(dir.y, dir.x) / PI) + 1.0f) * 0.5f),(asin(dir.z) / PI) + 0.5f);
 vec3 windDir(vec3 p){
   float fi = asin(p.z);
   float l  = atan(p.y,p.x);
   vec3 E = vec3(-sin(l), cos(l), 0.0);
   vec3 N = (vec3(-sin(fi)*cos(l), -sin(fi)*sin(l),cos(fi)));
-  return E;
+  return -N*(color.y-127.0/255.0)-E*(color.z-127.0/255.0);
 }
 void main(void) {
   OutputColor = vec4(0,0,0,1);
@@ -123,11 +130,13 @@ void main(void) {
       color = texture(ColorMap, _coords);
     }
     p = normalize((inverse(uViewMatrix)*vec4(p,1.0)).xyz);
-    vec4 positionModelSpace = vec4(dir,1.0);//vec4(earthPos(_coords),1.0);
-    vec4 windDirModelSpace  = vec4(windDir((inverse(uModelMatrix)*vec4(p,1.0)).xyz),0.0);
-    vec4 finalDirVector = (uProjectionMatrix*uViewMatrix*uModelMatrix*windDirModelSpace); 
-    //finalDirVector.xyz /= finalDirVector.w;
-    OutputColor.xyz = 0.01*finalDirVector.xyz;
+    //vec4 windDirModelSpace  = vec4(windDir((vec4(p,1.0)).xyz),0.0);
+    //vec4 windDirModelSpace  = vec4(windDir((inverse(uModelMatrix)*vec4(p,0.0)).xyz),0.0);
+    //vec4 windDirModelSpace  = vec4(windDir(earthPos(_coords)),0.0);
+    vec4 windDirModelSpace  = vec4(windDir(normalize(dir)),0.0);
+    vec4 finalDirVector = (uProjectionMatrix*uViewMatrix*inverse(uModelMatrix)*windDirModelSpace); 
+    
+    OutputColor.xyz = finalDirVector.xyz;
     OutputColor.w = 1.0;
 
     p = (uInverseViewMatrix*vec4(p,1.0)).xyz; //worldspace

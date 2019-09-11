@@ -40,7 +40,7 @@ vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord) {
   vec3 materialProp;
 
 vec2 coordinates(vec3 dir){
-    return vec2(1.0-(((atan(dir.x, dir.y) / PI) + 1.0f) * 0.5f),(asin(-dir.z) / PI) + 0.5f);
+    return vec2(1.0-(((atan(dir.y, dir.x) / PI) + 1.0f) * 0.5f),(asin(dir.z) / PI) + 0.5f);
   }
 
   float remap(in float value, in float original_min, in float original_max, in float new_min, in float new_max){
@@ -62,7 +62,7 @@ float planetary(in vec3 p){
   R=uPlanetSize;
   dist;
   dir     = normalize(p);
-  dir     = (uModelMatrix*vec4(dir,0)).xyz;
+  dir     = ((uModelMatrix)*vec4(dir,0)).xyz;
   _coords = coordinates(normalize(dir));
   
   if(_coords.x>0.99 || _coords.x<0.01 || _coords.y>0.99 || _coords.y<0.01){
