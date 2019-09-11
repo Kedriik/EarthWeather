@@ -185,8 +185,9 @@ export class RendererComponent implements OnInit {
     canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
     this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
     this.initTextureFramebuffer();
+    this.initParticlesFramebuffer();
     this.camera.init();
-    
+    this.camera.rotateByMouse([0,0])
     this.screenSize[0] = canvas.clientWidth;
     this.screenSize[1] = canvas.clientHeight;
     const fieldOfView = 45 * Math.PI / 180;   // in radians
@@ -568,7 +569,10 @@ export class RendererComponent implements OnInit {
       },
       uniformLocations: {
         final: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uFinal'),
-        screenSize: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uScreenSize')
+        screenSize: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uScreenSize'),
+        normal: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uNormals'),
+        position: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uPositions'),
+        lightPosition: this.gl.getUniformLocation(this.ParticlesDrawToScreenProgram, 'uLightPosition'),
       },
     };
 
@@ -799,9 +803,26 @@ export class RendererComponent implements OnInit {
       canvas.height
     )
 
+    this.gl.uniform3f(
+      this.ParticlesDrawToScreenProgramInfo.uniformLocations.lightPosition,
+      this.LightPosition[0],
+      this.LightPosition[1],
+      this.LightPosition[2]
+    );
+
     this.gl.activeTexture(this.gl.TEXTURE3);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTexture);
     this.gl.uniform1i(this.ParticlesDrawToScreenProgramInfo.uniformLocations.final, 3);
+
+    this.gl.activeTexture(this.gl.TEXTURE2);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.PositionTexture);
+    this.gl.uniform1i(this.ParticlesDrawToScreenProgramInfo.uniformLocations.position, 2);
+
+    this.gl.activeTexture(this.gl.TEXTURE1);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.NormalTexture);
+    this.gl.uniform1i(this.ParticlesDrawToScreenProgramInfo.uniformLocations.normal, 1);
+
+    
 
     {
       const vertexCount = 6;
