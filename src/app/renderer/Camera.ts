@@ -20,13 +20,14 @@ export class Camera
   init(){
     this.ViewMatrix=mat4.create();
     this.Position=vec3.create();
-    this.Position[0]= -20.0;
-    this.Position[1] = 0.0;
+    this.Position[0]= 0.0;
+    this.Position[1] = -20.0;
     this.Position[2] = 0.0;
     this.Forward=vec3.create();
     this.Forward[0] = -1;
     this.Forward[2] = 0;
-    this.Forward[1] = 0; 
+    this.Forward[1] = -2; 
+    vec3.normalize(this.Forward,this.Forward)
     this.Up=vec3.create();
     this.Up[2]= -1;
   }
@@ -358,9 +359,9 @@ export class Camera
         vec3.copy(rotateAroundVector,rotV);
       }
       let rotateSpeed:number
-      rotateSpeed = 1
+      rotateSpeed = 0.1
       let rotateQuat=quat.create();
-      quat.setAxisAngle(rotateQuat, rotateAroundVector,this.deltaTime*rotateSpeed*mov[i]);
+      quat.setAxisAngle(rotateQuat, rotateAroundVector,rotateSpeed*rotateSpeed*mov[i]);
       let rotateMatrix=mat4.create();
       mat4.fromQuat(rotateMatrix,rotateQuat);
 

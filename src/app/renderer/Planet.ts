@@ -844,8 +844,9 @@ export class Planet implements IRenderObject {
     let rotV = vec3.create();
     let _up = Planet.camera.Up;
     vec3.cross(rotV, Planet.camera.Up, Planet.camera.Forward);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, this.deltaTime * mov[0], _up);
-    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -this.deltaTime * mov[1], rotV);
+    let rotateSpeed = 0.01;
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix,  rotateSpeed*mov[0], _up);
+    mat4.rotate(this.ModelMatrix, this.ModelMatrix, -rotateSpeed* mov[1], rotV);
 
     // let rotateQuat=quat.create();
     // quat.setAxisAngle(rotateQuat, _up,this.deltaTime * mov[0]);
