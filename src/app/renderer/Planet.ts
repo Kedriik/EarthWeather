@@ -367,8 +367,8 @@ export class Planet implements IRenderObject {
     )
     gl.uniform2f(
       Planet.PlanetProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
     {
       gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
@@ -453,8 +453,8 @@ export class Planet implements IRenderObject {
     )
     gl.uniform2f(
       this.WindDirsProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
     {
       const vertexCount = 6;
@@ -535,8 +535,8 @@ export class Planet implements IRenderObject {
     )
     gl.uniform2f(
       this.DefferedCloudsProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
     {
       const vertexCount = 6;
@@ -609,8 +609,8 @@ export class Planet implements IRenderObject {
     )
     gl.uniform2f(
       Planet.OceanProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
     gl.uniform1f(
       Planet.OceanProgramInfo.uniformLocations.planetSize,
@@ -657,8 +657,8 @@ export class Planet implements IRenderObject {
 
     gl.uniform2f(
       Planet.AtmosphereProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
 
     gl.uniform3f(

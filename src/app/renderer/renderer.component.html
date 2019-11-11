@@ -9,10 +9,12 @@
           <button class="button" (click)="cloudsMode()" mat-button>{{cloudsButtonName}}</button>
         </div>
       </div>
+  
   <canvas  class="renderer" (window:resize)="onResize($event)" (focus)="startRendering()" (focusout)="pauseRendering()"
     id="glcanvas" align-c oncontextmenu="return false;">
     Your browser doesn't appear to support the HTML5
   </canvas>
+
 </div>
 <img [src] = "cloudsUrl" id="cloudsImg" hidden="true">
 <img [src] = "dirsWindSigma995Url" id="windsSigma995" hidden="true">

@@ -128,6 +128,7 @@ export class RendererComponent implements OnInit {
   bRender = true;
   fpsCounter: number = 0;
   countingTime: number = 0;
+  downScale = 1.0;
   bStartCouting = 0;
   bFirstTry = true;
   particleFramesOffset = 0;
@@ -180,18 +181,18 @@ export class RendererComponent implements OnInit {
 
   }
   onResize(event) {
+    canvas.width = document.body.clientWidth/this.downScale;
+    canvas.height = document.body.clientHeight/this.downScale;
     this.gl = this.initWebGL(canvas);
-    canvas.width = document.body.clientWidth;
-    canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
-    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
     this.initTextureFramebuffer();
     this.initParticlesFramebuffer();
     this.camera.init();
     this.camera.rotateByMouse([0,0])
-    this.screenSize[0] = canvas.clientWidth;
-    this.screenSize[1] = canvas.clientHeight;
+    this.screenSize[0] = canvas.width;
+    this.screenSize[1] = canvas.height;
     const fieldOfView = 45 * Math.PI / 180;   // in radians
-    const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+    const aspect = this.gl.canvas.width / this.gl.canvas.height;
     const zNear = 0.1;
     const zFar = 100000.0;
     mat4.perspective(this.ProjectionMatrix,
@@ -207,8 +208,8 @@ export class RendererComponent implements OnInit {
     canvas.tabIndex = 0;
     this.gl = this.initWebGL(canvas);      // Initialize the GL context
 
-    canvas.width = document.body.clientWidth;
-    canvas.height = 0.9 * document.body.clientHeight;// - menu.offsetHeight;
+    canvas.width = document.body.clientWidth/this.downScale;
+    canvas.height = document.body.clientHeight/this.downScale;
 
     this.PlanetAndDists = []
     let tvec = vec3.create();
@@ -238,7 +239,7 @@ export class RendererComponent implements OnInit {
       this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);      // Clear the color as well as the depth buffer.
       this.gl.disable(this.gl.CULL_FACE);
     }
-    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
     this.initTextureFramebuffer();
     this.initParticlesFramebuffer();
 
@@ -278,9 +279,8 @@ export class RendererComponent implements OnInit {
       this.PlanetAndDists.push(array);
     }
 
-    canvas.width = (document.body.clientWidth);
     this.gl = this.initWebGL(canvas);
-    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
     this.initTextureFramebuffer();
     this.camera.init();
     this.camera.deltaTime = 0;
@@ -289,10 +289,10 @@ export class RendererComponent implements OnInit {
     dummy.push(0);
     this.camera.rotateByMouse(dummy);
     this.screenSize = vec2.create();
-    this.screenSize[0] = canvas.clientWidth;
-    this.screenSize[1] = canvas.clientHeight;
+    this.screenSize[0] = canvas.width;
+    this.screenSize[1] = canvas.height;
     const fieldOfView = 45 * Math.PI / 180;   // in radians
-    const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+    const aspect = this.gl.canvas.width / this.gl.canvas.height;
     const zNear = 0.1;
     const zFar = 100000.0;
     this.ProjectionMatrix = mat4.create();
@@ -417,8 +417,8 @@ export class RendererComponent implements OnInit {
     ////Final particle result texture front
     this.ParticlesFinalFrameBufferFront = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.ParticlesFinalFrameBufferFront);
-    this.ParticlesFinalFrameBufferFront.width = canvas.width;//this.ParticleTextureWidth;
-    this.ParticlesFinalFrameBufferFront.height = canvas.height;//this.ParticleTextureHeight;
+    this.ParticlesFinalFrameBufferFront.width = canvas.width;
+    this.ParticlesFinalFrameBufferFront.height = canvas.height;
 
     this.ParticlesFinalTextureFront = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.ParticlesFinalTextureFront);
@@ -1044,7 +1044,7 @@ export class RendererComponent implements OnInit {
     this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    gl.viewport(0, 0, canvas.width, canvas.height);
 
     //camera handling
     if (vec3.dist(this.camera.Position, this.Earth.Position) < 10) {
@@ -1062,7 +1062,7 @@ export class RendererComponent implements OnInit {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.AtmosphereLayerFrameBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    gl.viewport(0, 0, canvas.width, canvas.height);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
     gl.disable(gl.DEPTH_TEST);
@@ -1072,13 +1072,13 @@ export class RendererComponent implements OnInit {
     gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.renderBuffer);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
     this.Sun.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
 
 
 
     
-    this.gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+    this.gl.viewport(0, 0, canvas.width, canvas.height);
     this.Earth.draw(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
     this.drawDeffered(gl, buffers);
 
@@ -1098,7 +1098,7 @@ export class RendererComponent implements OnInit {
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LESS);            // Near things obscure far things
         gl.clear(gl.COLOR_BUFFER_BIT)
-        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         this.Earth.markWindSpeeds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers, this.ParticlesVelocities);
       }
       else {
@@ -1107,7 +1107,7 @@ export class RendererComponent implements OnInit {
         gl.enable(gl.DEPTH_TEST);           // Enable depth testing
         gl.depthFunc(gl.LESS);            // Near things obscure far things
         gl.clear(gl.COLOR_BUFFER_BIT)
-        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         this.Earth.drawClassicClouds(gl, this.ViewMatrix, this.ProjectionMatrix, buffers);
         this.drawDeffered(gl, buffers);
       }
@@ -1142,8 +1142,8 @@ export class RendererComponent implements OnInit {
 
     gl.uniform2f(
       this.DefferedShaderProgramInfo.uniformLocations.screenSize,
-      canvas.clientWidth,
-      canvas.clientHeight
+      canvas.width,
+      canvas.height
     )
 
     gl.uniform3f(

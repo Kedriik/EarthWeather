@@ -28,7 +28,7 @@ void main(void){
         float y             = abs((rand(vec2(sin(uTime) , sin(uDeltaTime)) + uv)*100.0))/100.0;
         particlePosition.x  = x;
         particlePosition.y  = y;
-        particlePosition.w  = 1000.0;//uParticleLife;  
+        particlePosition.w  = 3000.0;//uParticleLife;  
         particlePosition.z  = 0.0;
     }
 
