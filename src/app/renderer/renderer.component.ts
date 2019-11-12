@@ -136,11 +136,19 @@ export class RendererComponent implements OnInit {
   dirsWindSigma995Url: string;
   currentId: any;
 
+  async doReload(){
+    if(this.bChecking){
+      this.mainMessage += "Weather data failed to load. Trying again \n"
+      await this.delay(2000);
+      window.location.reload();
+    }
+  }
   delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async printDelayed() {
+    setTimeout(() => this.doReload(), 60000);
     while (true) {
       this.mainMessage += ".";
       if (!this.bChecking) {
@@ -1225,13 +1233,14 @@ export class RendererComponent implements OnInit {
           this.bStartCouting = 0;
         }
         else if (this.bFirstTry) {
-          this.mainMessage += "\nNot enough performance.Turning off features.";
+          this.mainMessage += "\nNot enough performance.Turning off features and downscaling.";
           this.countingTime = 0;
           this.fpsCounter = 0;
           this.bFirstTry = false;
           this.renderCloudsMode();
           this.atmosphereMode();
           this.cloudsMode();
+          this.downScale = 2.0;
           this.mainMessage += "\nTesting performance again.";
         }
         else {
