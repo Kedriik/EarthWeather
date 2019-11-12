@@ -138,7 +138,7 @@ export class RendererComponent implements OnInit {
 
   async doReload(){
     if(this.bChecking){
-      this.mainMessage += "Weather data failed to load. Trying again \n"
+      this.mainMessage += "\nWeather data failed to load. Trying again \n"
       await this.delay(2000);
       window.location.reload();
     }
@@ -189,6 +189,9 @@ export class RendererComponent implements OnInit {
 
   }
   onResize(event) {
+    this.reinit();
+  }
+  reinit(){
     canvas.width = document.body.clientWidth/this.downScale;
     canvas.height = document.body.clientHeight/this.downScale;
     this.gl = this.initWebGL(canvas);
@@ -1241,6 +1244,7 @@ export class RendererComponent implements OnInit {
           this.atmosphereMode();
           this.cloudsMode();
           this.downScale = 2.0;
+          this.reinit();
           this.mainMessage += "\nTesting performance again.";
         }
         else {
