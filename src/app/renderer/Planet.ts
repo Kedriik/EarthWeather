@@ -202,7 +202,7 @@ export class Planet implements IRenderObject {
     //this.CloudsImage = new Image();
 
     if (this.PlanetName == "Earth") {
-      this.TopologyImage.src = require('./Textures/earth_topology_h1.png');
+      this.TopologyImage.src = require('./Textures/earth_topology_h1.jpg');
       this.ColorImage.src = require('./Textures/earth_color.jpg');
       //this.CloudsImage.src = require('./Textures/clouds.jpg');
       this.BlueSpec = 1.0;
