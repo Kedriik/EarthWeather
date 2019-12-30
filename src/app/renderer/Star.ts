@@ -150,8 +150,8 @@ export class Star implements IRenderObject {
     )
     gl.uniform2f(
       this.SunProgramInfo.uniformLocations.screenSize,
-      buffers.canvas.clientWidth,
-      buffers.canvas.clientHeight
+      buffers.canvas.width,
+      buffers.canvas.height
     )
     {
       const vertexCount = 6;
